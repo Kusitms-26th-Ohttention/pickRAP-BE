@@ -73,7 +73,7 @@ jobs:
           files: build/test-results/**/*.xml
 
       ### CD
-      #배포를 위한 prod properties 설정
+      #배포를 위한 test properties 설정
       - name: Make application-prod.properties
         if: contains(github.ref, 'main')
         run: |
