@@ -35,6 +35,8 @@ public class Member extends BaseEntity{
     @Enumerated(EnumType.STRING)
     private SocialType socialType;
 
+    private String test;
+
     @Builder
     public Member(String email, String kakaoEmail, String googleEmail, SocialType socialType, String password, String name) {
         this.email = email;
