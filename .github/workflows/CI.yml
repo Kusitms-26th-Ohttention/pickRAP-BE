@@ -1,9 +1,6 @@
-name: CI/CD
+name: CI
 
 on:
-  push: #해당 브랜치에 push(merge) 했을 때
-    branches:
-      - main
   pull_request: #해당 브랜치로 pr 왔을 때
     branches:
       - dev
@@ -71,43 +68,3 @@ jobs:
         if: ${{ always() }}
         with:
           files: build/test-results/**/*.xml
-
-      ### CD
-      #배포를 위한 prod properties 설정
-      - name: Make application-prod.properties
-        if: contains(github.ref, 'main')
-        run: |
-          cd ./src/main/resources
-          touch ./application-prod.properties
-          echo "${{ secrets.PROPERTIES_PROD }}" > ./application-prod.properties
-        shell: bash
-
-      #test를 제외한 프로젝트 빌드
-      - name: Build With Gradle
-        if: contains(github.ref, 'main')
-        run: ./gradlew build -x test
-
-      #도커 빌드 & 이미지 push
-      - name: Docker build & Push
-        if: contains(github.ref, 'main')
-        run: |
-          docker login -u ${{ secrets.DOCKER_ID }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker build -f Dockerfile -t ${{ secrets.DOCKER_REPO }}/pickrap .
-          docker push ${{ secrets.DOCKER_REPO }}/pickrap
-
-      #docker-compose 파일을 ec2 서버에 배포
-      - name: Deploy to Prod
-        uses: appleboy/ssh-action@master
-        id: deploy-prod
-        if: contains(github.ref, 'main')
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
-          envs: GITHUB_SHA
-          script: |
-            docker stop pickrap
-            docker rm pickrap
-            sudo docker pull ${{ secrets.DOCKER_REPO }}/pickrap
-            docker run -d --name pickrap -p 8080:8080 ${{ secrets.DOCKER_REPO }}/pickrap
-            docker rmi -f $(docker images -f "dangling=true" -q)
