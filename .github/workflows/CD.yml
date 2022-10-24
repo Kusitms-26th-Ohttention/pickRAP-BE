@@ -34,7 +34,6 @@ jobs:
       ### CD
       #배포를 위한 prod properties 설정
       - name: Make application-prod.properties
-        if: contains(github.ref, 'main')
         run: |
           cd ./src/main/resources
           touch ./application-prod.properties
@@ -43,12 +42,10 @@ jobs:
 
       #test를 제외한 프로젝트 빌드
       - name: Build With Gradle
-        if: contains(github.ref, 'main')
         run: ./gradlew build -x test
 
       #도커 빌드 & 이미지 push
       - name: Docker build & Push
-        if: contains(github.ref, 'main')
         run: |
           docker login -u ${{ secrets.DOCKER_ID }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker build -f Dockerfile -t ${{ secrets.DOCKER_REPO }}/pickrap .
@@ -58,7 +55,6 @@ jobs:
       - name: Deploy to Prod
         uses: appleboy/ssh-action@master
         id: deploy-prod
-        if: contains(github.ref, 'main')
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
