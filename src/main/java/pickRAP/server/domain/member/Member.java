@@ -1,16 +1,17 @@
-package pickRAP.server.domain;
+package pickRAP.server.domain.member;
 
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import pickRAP.server.common.BaseEntity;
 
 import javax.persistence.*;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Member extends BaseEntity{
+public class Member extends BaseEntity {
 
     @Id
     @GeneratedValue
@@ -19,11 +20,9 @@ public class Member extends BaseEntity{
 
     private String email;
 
-    @Column(name = "email_kakao")
     private String kakaoEmail;
 
-    @Column(name = "email_google")
-    private String googleEmail;
+    private String naverEmail;
 
     private String password;
 
@@ -36,12 +35,13 @@ public class Member extends BaseEntity{
     private SocialType socialType;
 
     @Builder
-    public Member(String email, String kakaoEmail, String googleEmail, SocialType socialType, String password, String name) {
+    public Member(String email, String kakaoEmail, String naverEmail, SocialType socialType, String password, String name) {
         this.email = email;
         this.kakaoEmail = kakaoEmail;
-        this.googleEmail = googleEmail;
+        this.naverEmail = naverEmail;
         this.password = password;
         this.name = name;
         this.authority = Authority.ROLE_USER;
+        this.socialType = socialType;
     }
 }

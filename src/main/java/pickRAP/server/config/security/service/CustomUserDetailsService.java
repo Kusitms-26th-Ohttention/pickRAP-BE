@@ -12,7 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pickRAP.server.domain.Member;
+import pickRAP.server.domain.member.Member;
 import pickRAP.server.repository.member.MemberRepository;
 
 import java.util.Collections;
