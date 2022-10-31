@@ -1,4 +1,4 @@
-package pickRAP.server.domain;
+package pickRAP.server.common;
 
 
 import lombok.Getter;
