@@ -10,5 +10,4 @@ public class MemberSignUpRequest {
 
     private String password;
 
-    private String name;
 }

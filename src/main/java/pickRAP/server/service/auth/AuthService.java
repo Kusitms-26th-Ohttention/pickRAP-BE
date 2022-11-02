@@ -41,13 +41,9 @@ public class AuthService {
     회원가입
      */
     public void signUp(MemberSignUpRequest memberSignUpRequest) {
-        if (memberRepository.existsByEmail(memberSignUpRequest.getEmail())){
-            throw new BaseException(EXIST_ACCOUNT);
-        }
         memberRepository.save(Member.builder()
                         .email(memberSignUpRequest.getEmail())
                         .password(passwordEncoder.encode(memberSignUpRequest.getPassword()))
-                        .name(memberSignUpRequest.getName())
                         .socialType(SocialType.NONE)
                         .build()
         );

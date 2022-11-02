@@ -6,6 +6,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Service;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseExceptionStatus;
+import pickRAP.server.repository.member.MemberRepository;
 import pickRAP.server.util.RedisClient;
 
 import java.util.Optional;
@@ -20,8 +21,12 @@ public class VerifyCodeService {
 
     private final RedisClient redisClient;
     private final EmailSenderService emailSenderService;
+    private final MemberRepository memberRepository;
 
     public void createVerifyCode(String receiverEmail) {
+        if(memberRepository.existsByEmail(receiverEmail)){
+            throw new BaseException(EXIST_ACCOUNT);
+        }
         String code = createKey();
 
         redisClient.setEmail(code);

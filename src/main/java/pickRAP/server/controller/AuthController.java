@@ -43,7 +43,7 @@ public class AuthController {
     @PostMapping("/sign-up")
     @ApiOperation(value = "회원가입", notes = "이메일 형식 검사 + 비밀번호 형식(영문 + 숫자 8~16자)")
     @ApiResponses({
-            @ApiResponse(responseCode = "400", description = "2002-이메일형식예외, 2003-비밀번호형식예외, 2004-이미존재하는회원"),
+            @ApiResponse(responseCode = "400", description = "2002-이메일형식예외, 2003-비밀번호형식예외"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
     public ResponseEntity<BaseResponse> signUp(@RequestBody MemberSignUpRequest memberSignUpRequest) {
@@ -71,7 +71,7 @@ public class AuthController {
     @PostMapping("/send-email")
     @ApiOperation(value = "이메일 인증", notes = "이메일 인증코드 보내기")
     @ApiResponses({
-            @ApiResponse(responseCode = "400", description = "2002-이메일형식예외"),
+            @ApiResponse(responseCode = "400", description = "2002-이메일형식예외, 2004-이미존재하는회원"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
     public ResponseEntity<BaseResponse> sendEmail(@RequestBody MemberEmailRequest memberEmailRequest) {
