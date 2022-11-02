@@ -1,11 +1,14 @@
 package pickRAP.server.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import static pickRAP.server.common.BaseExceptionStatus.*;
 
 @Data
+@JsonPropertyOrder({"code", "message", "data"})
 public class BaseResponse<T> {
 
     private int code;
