@@ -6,10 +6,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseResponse;
 import pickRAP.server.controller.dto.auth.MemberEmailRequest;
@@ -18,6 +15,7 @@ import pickRAP.server.controller.dto.auth.MemberSignUpRequest;
 import pickRAP.server.controller.dto.auth.MemberVerifyCodeRequest;
 import pickRAP.server.service.auth.AuthService;
 import pickRAP.server.service.auth.VerifyCodeService;
+import pickRAP.server.service.oauth.OauthService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -34,6 +32,7 @@ import static pickRAP.server.common.BaseExceptionStatus.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final OauthService oauthService;
     private final VerifyCodeService verifyCodeService;
     private static final Pattern EMAIL = Pattern.compile("^[a-zA-Z0-9+-\\_.]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$",Pattern.CASE_INSENSITIVE);
     private static final Pattern PASSWORD = Pattern.compile("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,16}$",Pattern.CASE_INSENSITIVE);
@@ -112,6 +111,24 @@ public class AuthController {
         response.setHeader("Authorization", "Bearer "+accessToken);
         return ResponseEntity.ok(new BaseResponse<>(SUCCESS));
     }
+
+    /*
+    소셜로그인
+     */
+    @GetMapping("/{provider}")
+    @ApiOperation(value = "소셜로그인", notes = "소셜 인증 후, 토큰 발급 - 네이버의 경우 parameter에 state값도 포함하여 요청!!")
+    @ApiResponses({
+            @ApiResponse(responseCode = "500", description = "리소스 서버 예외")
+    })
+    public ResponseEntity<BaseResponse> socialSignIn(@PathVariable("provider")String provider
+                                                    , @RequestParam("code") String code
+                                                    , @RequestParam(value = "state", required = false) String state
+                                                    , HttpServletResponse response ){
+        String accessToken = oauthService.socialAuth(provider, code, state);
+        response.setHeader("Authorization", "Bearer "+accessToken);
+        return ResponseEntity.ok(new BaseResponse(SUCCESS));
+    }
+
 
     /*
     재발급
