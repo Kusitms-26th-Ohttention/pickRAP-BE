@@ -31,7 +31,7 @@ public class S3Service {
 
     private final AmazonS3Client amazonS3Client;
 
-    //단일 파일 올리기(s3 파일 이름 반환)
+    //단일 파일 올리기 (s3 파일 이름 반환)
     public String uploadFile(MultipartFile multipartFile, String dir) throws IOException {
         try {
             if(!checkFile(multipartFile.getContentType().substring(multipartFile.getContentType().lastIndexOf("/")))) {
@@ -54,7 +54,7 @@ public class S3Service {
         }
     }
 
-    //다중 파일 올리기(s3 파일 이름 리스트 반환)
+    //다중 파일 올리기 (s3 파일 이름 리스트 반환)
     public List<String> uploadFiles(List<MultipartFile> multipartFiles, String dir) throws IOException {
         List<String> fileNames = new ArrayList<>();
 
