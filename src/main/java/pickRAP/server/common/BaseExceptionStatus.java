@@ -15,13 +15,15 @@ public enum BaseExceptionStatus {
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, 2003, "비밀번호 형식을 확인해주세요"),
     EXIST_ACCOUNT(HttpStatus.BAD_REQUEST, 2004, "이미 존재하는 회원입니다"),
     FAIL_LOGIN(HttpStatus.BAD_REQUEST, 2005, "로그인 실패"),
-    INVALID_EMAIL_CODE(HttpStatus.BAD_REQUEST, 2006, "인증코드 검증실패");
+    INVALID_EMAIL_CODE(HttpStatus.BAD_REQUEST, 2006, "인증코드 검증실패"),
 
     // 회원
 
 
     // 스크랩
-
+    NOT_SUPPORT_FILE(HttpStatus.BAD_REQUEST, 4001, "지원하지 않는 파일 형식입니다"),
+    FILE_UPLOAD_FAIL(HttpStatus.BAD_REQUEST, 4002, "파일 업로드 실패"),
+    FILE_DOWNLOAD_FAIL(HttpStatus.BAD_REQUEST, 4003, "파일 다운로드 실패");
 
     // 메거진
 
