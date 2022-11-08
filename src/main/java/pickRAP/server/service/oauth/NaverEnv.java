@@ -119,9 +119,9 @@ public class NaverEnv implements ProviderEnv{
         if (memberRepository.findByEmail(profile.getResponse().getId() + profile.getResponse().getEmail()).isEmpty()){
             memberRepository.save(Member.builder()
                     .email(profile.getResponse().getId() + profile.getResponse().getEmail())
-                    .naverEmail(profile.getResponse().getEmail())
                     .name(URLDecoder.decode(profile.getResponse().getName(), CharsetUtil.UTF_8))
                     .password(passwordEncoder.encode(profile.getResponse().getEmail()))
+                    .profileImageUrl("user_default_profile.png")
                     .socialType(SocialType.NAVER)
                     .build());
         }
