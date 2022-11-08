@@ -43,7 +43,9 @@ public class AuthService {
     public void signUp(MemberSignUpRequest memberSignUpRequest) {
         memberRepository.save(Member.builder()
                         .email(memberSignUpRequest.getEmail())
+                        .name(memberSignUpRequest.getEmail().split("@")[0])
                         .password(passwordEncoder.encode(memberSignUpRequest.getPassword()))
+                        .profileImageUrl("user_default_profile.png")
                         .socialType(SocialType.NONE)
                         .build()
         );

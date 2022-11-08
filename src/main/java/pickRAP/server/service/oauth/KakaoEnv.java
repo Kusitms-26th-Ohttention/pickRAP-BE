@@ -114,8 +114,9 @@ public class KakaoEnv implements ProviderEnv{
         if (memberRepository.findByEmail(Long.toString(profile.getId()) + profile.getKakao_account().getEmail()).isEmpty()) {
             memberRepository.save(Member.builder()
                     .email(Long.toString(profile.getId()) + profile.getKakao_account().getEmail())
-                    .kakaoEmail(profile.getKakao_account().getEmail())
                     .password(passwordEncoder.encode(profile.getKakao_account().getEmail()))
+                    .name(profile.getKakao_account().getProfile().getNickname())
+                    .profileImageUrl("user_default_profile.png")
                     .socialType(SocialType.KAKAO)
                     .build());
         }
