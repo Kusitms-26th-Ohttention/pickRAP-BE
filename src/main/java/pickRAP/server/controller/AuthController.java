@@ -35,7 +35,8 @@ public class AuthController {
     private final OauthService oauthService;
     private final VerifyCodeService verifyCodeService;
     private static final Pattern EMAIL = Pattern.compile("^[a-zA-Z0-9+-\\_.]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$",Pattern.CASE_INSENSITIVE);
-    private static final Pattern PASSWORD = Pattern.compile("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,16}$",Pattern.CASE_INSENSITIVE);
+    private static final Pattern PASSWORD = Pattern.compile("^.*(?=^.{8,}$)(?=.*[a-zA-Z])(?=.*[!@#$%^&+=]).*$",Pattern.CASE_INSENSITIVE);
+
     /*
     회원가입
      */
