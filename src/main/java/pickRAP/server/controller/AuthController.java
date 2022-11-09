@@ -6,15 +6,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseResponse;
-import pickRAP.server.controller.dto.auth.MemberEmailRequest;
 import pickRAP.server.controller.dto.auth.MemberSignInRequest;
 import pickRAP.server.controller.dto.auth.MemberSignUpRequest;
-import pickRAP.server.controller.dto.auth.MemberVerifyCodeRequest;
 import pickRAP.server.service.auth.AuthService;
-import pickRAP.server.service.auth.VerifyCodeService;
 import pickRAP.server.service.oauth.OauthService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,19 +31,19 @@ public class AuthController {
 
     private final AuthService authService;
     private final OauthService oauthService;
-    private final VerifyCodeService verifyCodeService;
     private static final Pattern EMAIL = Pattern.compile("^[a-zA-Z0-9+-\\_.]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$",Pattern.CASE_INSENSITIVE);
-    private static final Pattern PASSWORD = Pattern.compile("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,16}$",Pattern.CASE_INSENSITIVE);
+    private static final Pattern PASSWORD = Pattern.compile("^.*(?=^.{8,}$)(?=.*[a-zA-Z])(?=.*[!@#$%^&+=]).*$",Pattern.CASE_INSENSITIVE);
+
     /*
     회원가입
      */
     @PostMapping("/sign-up")
-    @ApiOperation(value = "회원가입", notes = "이메일 형식 검사 + 비밀번호 형식(영문 + 숫자 8~16자)")
+    @ApiOperation(value = "회원가입", notes = "이메일 형식 검사 + 비밀번호 형식(영문 + 특수문자 8자이상)")
     @ApiResponses({
-            @ApiResponse(responseCode = "400", description = "2002-이메일형식예외, 2003-비밀번호형식예외"),
+            @ApiResponse(responseCode = "400", description = "2002-이메일형식예외, 2003-비밀번호형식예외, 2004-이미존재하는회원, 2006-미입력칸존재"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse> signUp(@RequestBody MemberSignUpRequest memberSignUpRequest) {
+    public ResponseEntity<BaseResponse> signUp(@Validated @RequestBody MemberSignUpRequest memberSignUpRequest) {
         if (!isRegexEmail(memberSignUpRequest.getEmail())) {
             throw new BaseException(INVALID_EMAIL);
         }
@@ -64,36 +62,6 @@ public class AuthController {
         return PASSWORD.matcher(password).find();
     }
 
-    /*
-    이메일 인증
-     */
-    @PostMapping("/send-email")
-    @ApiOperation(value = "이메일 인증", notes = "이메일 인증코드 보내기")
-    @ApiResponses({
-            @ApiResponse(responseCode = "400", description = "2002-이메일형식예외, 2004-이미존재하는회원"),
-            @ApiResponse(responseCode = "500", description = "서버 예외")
-    })
-    public ResponseEntity<BaseResponse> sendEmail(@RequestBody MemberEmailRequest memberEmailRequest) {
-        if (!isRegexEmail(memberEmailRequest.getEmail())) {
-            throw new BaseException(INVALID_EMAIL);
-        }
-        verifyCodeService.createVerifyCode(memberEmailRequest.getEmail());
-        return ResponseEntity.ok(new BaseResponse<>(SUCCESS));
-    }
-
-    /*
-    인증코드 검증
-     */
-    @PostMapping("/verify-email")
-    @ApiOperation(value = "이메일 인증코드 검증", notes = "이메일 인증코드 검증")
-    @ApiResponses({
-            @ApiResponse(responseCode = "400", description = "2006-인증코드 검증실패"),
-            @ApiResponse(responseCode = "500", description = "서버 예외")
-    })
-    public ResponseEntity<BaseResponse> verifyEmail(@RequestBody MemberVerifyCodeRequest memberVerifyCodeRequest) {
-        verifyCodeService.verifyCode(memberVerifyCodeRequest.getCode());
-        return ResponseEntity.ok(new BaseResponse<>(SUCCESS));
-    }
 
 
     /*
@@ -103,10 +71,11 @@ public class AuthController {
     @PostMapping("/sign-in")
     @ApiOperation(value = "로그인", notes = "유저 로그인")
     @ApiResponses({
-            @ApiResponse(responseCode = "400", description = "2005-로그인실패"),
+            @ApiResponse(responseCode = "400", description = "2005-로그인실패, 2006-미입력칸존재"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse> signIn(@RequestBody MemberSignInRequest memberSignInRequest, HttpServletResponse response) {
+    public ResponseEntity<BaseResponse> signIn(@Validated @RequestBody MemberSignInRequest memberSignInRequest, HttpServletResponse response) {
+        log.info("로그인시도");
         String accessToken = authService.signIn(memberSignInRequest);
         response.setHeader("Authorization", "Bearer "+accessToken);
         return ResponseEntity.ok(new BaseResponse<>(SUCCESS));

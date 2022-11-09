@@ -20,10 +20,6 @@ public class Member extends BaseEntity {
 
     private String email;
 
-    private String kakaoEmail;
-
-    private String naverEmail;
-
     private String password;
 
     private String name;
@@ -41,12 +37,11 @@ public class Member extends BaseEntity {
     private SocialType socialType;
 
     @Builder
-    public Member(String email, String kakaoEmail, String naverEmail, SocialType socialType, String password, String name) {
+    public Member(String email, SocialType socialType, String password, String name, String profileImageUrl) {
         this.email = email;
-        this.kakaoEmail = kakaoEmail;
-        this.naverEmail = naverEmail;
         this.password = password;
         this.name = name;
+        this.profileImageUrl = profileImageUrl;
         this.authority = Authority.ROLE_USER;
         this.socialType = socialType;
     }
