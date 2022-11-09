@@ -15,7 +15,7 @@ public enum BaseExceptionStatus {
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, 2003, "비밀번호 형식을 확인해주세요"),
     EXIST_ACCOUNT(HttpStatus.BAD_REQUEST, 2004, "이미 존재하는 회원입니다"),
     FAIL_LOGIN(HttpStatus.BAD_REQUEST, 2005, "로그인 실패"),
-    INVALID_EMAIL_CODE(HttpStatus.BAD_REQUEST, 2006, "인증코드 검증실패"),
+    EMPTY_INPUT_VALUE(HttpStatus.BAD_REQUEST, 2006, "값을 모두 입력해주세요"),
 
     // 회원
 
