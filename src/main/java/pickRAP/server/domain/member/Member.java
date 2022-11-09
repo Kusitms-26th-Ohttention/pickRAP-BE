@@ -28,6 +28,8 @@ public class Member extends BaseEntity {
 
     private String introduction;
 
+    private String keyword;
+
     @Enumerated(EnumType.STRING)
     private Authority authority;
 
@@ -42,5 +44,20 @@ public class Member extends BaseEntity {
         this.profileImageUrl = profileImageUrl;
         this.authority = Authority.ROLE_USER;
         this.socialType = socialType;
+    }
+
+    public void updateProfile(String name, String introduction, String profileImageUrl, String keyword) {
+        if(name != null) {
+            this.name = name;
+        }
+        if(introduction != null) {
+            this.introduction = introduction;
+        }
+        if(!profileImageUrl.equals("")) {
+            this.profileImageUrl = profileImageUrl;
+        }
+        if(keyword != null) {
+            this.keyword = keyword;
+        }
     }
 }
