@@ -46,12 +46,12 @@ public class ProfileController {
     public ResponseEntity<BaseResponse> updateProfile(@RequestPart("profile-request") ProfileRequest request,
                                                       @RequestPart("file") MultipartFile multipartFile
                                                      ) throws IOException {
-        String msg = "";
+        String profileImageUrl = "";
         if(!multipartFile.isEmpty()) {
-            msg = s3Service.uploadFile(multipartFile, "content");
+            profileImageUrl = s3Service.uploadFile(multipartFile, "content");
         }
 
-        profileService.updateProfile(authService.getUserEmail(), request, msg);
+        profileService.updateProfile(authService.getUserEmail(), request, profileImageUrl);
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }

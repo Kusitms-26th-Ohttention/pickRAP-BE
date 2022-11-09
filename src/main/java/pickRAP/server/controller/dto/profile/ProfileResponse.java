@@ -7,7 +7,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class ProfileResponse {
     String name;
-    String description;
-    String imageUrl;
+    String introduction;
+    String profileImageUrl;
     String[] keywords;
 }

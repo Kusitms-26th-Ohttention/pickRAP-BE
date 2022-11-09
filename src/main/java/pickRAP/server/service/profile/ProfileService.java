@@ -21,18 +21,18 @@ public class ProfileService {
 
         String[] keywords = member.getKeyword().split("#");
 
-        return new ProfileResponse(member.getName(), member.getDescription(), member.getImageUrl(), keywords);
+        return new ProfileResponse(member.getName(), member.getIntroduction(), member.getProfileImageUrl(), keywords);
     }
 
     @Transactional
-    public void updateProfile(String email, ProfileRequest request, String imageUrl) {
+    public void updateProfile(String email, ProfileRequest request, String profileImageUrl) {
         Member member = memberRepository.findByEmail(email).orElseThrow();
 
         String keyword = "";
         for(String k : request.getKeywords()) {
             keyword += k + "#";
         }
-        member.updateProfile(request.getName(), request.getDescription(), imageUrl, keyword);
+        member.updateProfile(request.getName(), request.getIntroduction(), profileImageUrl, keyword);
     }
 
 }

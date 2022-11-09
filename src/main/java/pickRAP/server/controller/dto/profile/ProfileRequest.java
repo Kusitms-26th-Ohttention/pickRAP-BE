@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class ProfileRequest {
     String name;
-    String description;
+    String introduction;
     String[] keywords;
 }

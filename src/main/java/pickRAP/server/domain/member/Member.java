@@ -28,9 +28,9 @@ public class Member extends BaseEntity {
 
     private String name;
 
-    private String description;
+    private String profileImageUrl;
 
-    private String imageUrl;
+    private String introduction;
 
     private String keyword;
 
@@ -51,15 +51,15 @@ public class Member extends BaseEntity {
         this.socialType = socialType;
     }
 
-    public void updateProfile(String name, String description, String imageUrl, String keyword) {
+    public void updateProfile(String name, String introduction, String profileImageUrl, String keyword) {
         if(name != null) {
             this.name = name;
         }
-        if(description != null) {
-            this.description = description;
+        if(introduction != null) {
+            this.introduction = introduction;
         }
-        if(!imageUrl.equals("")) {
-            this.imageUrl = imageUrl;
+        if(!profileImageUrl.equals("")) {
+            this.profileImageUrl = profileImageUrl;
         }
         if(keyword != null) {
             this.keyword = keyword;
