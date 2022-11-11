@@ -22,6 +22,7 @@ import pickRAP.server.domain.member.Member;
 import pickRAP.server.domain.member.SocialType;
 import pickRAP.server.repository.member.MemberRepository;
 import pickRAP.server.service.auth.AuthService;
+import pickRAP.server.service.category.CategoryService;
 
 import java.net.URLDecoder;
 
@@ -33,6 +34,7 @@ public class NaverEnv implements ProviderEnv{
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
+    private final CategoryService categoryService;
 
     @Value("${naver.client-id}")
     private String clientId;
@@ -117,13 +119,15 @@ public class NaverEnv implements ProviderEnv{
 
     public String socialLogin(NaverProfile profile) {
         if (memberRepository.findByEmail(profile.getResponse().getId() + profile.getResponse().getEmail()).isEmpty()){
-            memberRepository.save(Member.builder()
+            Member member = Member.builder()
                     .email(profile.getResponse().getId() + profile.getResponse().getEmail())
                     .name(URLDecoder.decode(profile.getResponse().getName(), CharsetUtil.UTF_8))
                     .password(passwordEncoder.encode(profile.getResponse().getEmail()))
                     .profileImageUrl("user_default_profile.png")
                     .socialType(SocialType.NAVER)
-                    .build());
+                    .build();
+            memberRepository.save(member);
+            categoryService.initial(member);
         }
 
         return authService.authenticationMember(profile.getResponse().getId() + profile.getResponse().getEmail(), profile.getResponse().getEmail());
