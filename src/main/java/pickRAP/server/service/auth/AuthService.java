@@ -109,5 +109,10 @@ public class AuthService {
         redisClient.deleteValues(SecurityUtil.getCurrentMemberId());
     }
 
-
+    /*
+    사용자 아이디
+     */
+    public String getUserEmail() {
+        return SecurityUtil.getCurrentMemberId();
+    }
 }
