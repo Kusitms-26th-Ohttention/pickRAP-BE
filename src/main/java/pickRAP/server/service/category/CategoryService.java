@@ -74,6 +74,10 @@ public class CategoryService {
 
     @Transactional
     public void delete(Long id) {
+        if(categoryRepository.findById(id).isEmpty()) {
+            throw new BaseException(BaseExceptionStatus.DONT_EXIST_CATEGORY);
+        }
+
         categoryRepository.deleteById(id);
     }
 }

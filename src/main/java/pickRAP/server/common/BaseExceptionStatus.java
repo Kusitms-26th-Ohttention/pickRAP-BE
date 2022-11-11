@@ -25,7 +25,8 @@ public enum BaseExceptionStatus {
     FILE_UPLOAD_FAIL(HttpStatus.BAD_REQUEST, 4002, "파일 업로드 실패"),
     FILE_DOWNLOAD_FAIL(HttpStatus.BAD_REQUEST, 4003, "파일 다운로드 실패"),
     EXIST_CATEGORY(HttpStatus.BAD_REQUEST, 4004, "이미 존재하는 카테고리입니다"),
-    SAME_CATEGORY(HttpStatus.BAD_REQUEST, 4005, "변경하려는 카테고리의 이름이 같습니다");
+    SAME_CATEGORY(HttpStatus.BAD_REQUEST, 4005, "변경하려는 카테고리의 이름이 같습니다"),
+    DONT_EXIST_CATEGORY(HttpStatus.BAD_REQUEST, 4006, "카테고리가 존재하지 않습니다");
 
     // 메거진
 

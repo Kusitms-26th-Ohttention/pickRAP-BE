@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pickRAP.server.common.BaseResponse;
+import pickRAP.server.controller.dto.category.CategoryDeleteRequest;
 import pickRAP.server.controller.dto.category.CategoryRequest;
 import pickRAP.server.controller.dto.category.CategoryResponse;
 import pickRAP.server.service.auth.AuthService;
@@ -60,13 +61,16 @@ public class CategoryController {
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping
     @ApiOperation(value = "카테고리 삭제", notes = "카테고리 삭제")
     @ApiResponses({
+            @ApiResponse(responseCode = "400", description = "4006-카테고리가존재하지않음"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse> deleteCategory(@PathVariable("id") Long id) {
-        categoryService.delete(id);
+    public ResponseEntity<BaseResponse> deleteCategory(@RequestBody CategoryDeleteRequest categoryDeleteRequest) {
+        for(Long id : categoryDeleteRequest.getId()) {
+            categoryService.delete(id);
+        }
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
