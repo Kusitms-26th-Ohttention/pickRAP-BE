@@ -5,8 +5,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pickRAP.server.common.BaseEntity;
+import pickRAP.server.domain.category.Category;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Getter
@@ -35,6 +37,9 @@ public class Member extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private SocialType socialType;
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<Category> categories;
 
     @Builder
     public Member(String email, SocialType socialType, String password, String name, String profileImageUrl) {
