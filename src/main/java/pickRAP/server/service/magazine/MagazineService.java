@@ -20,6 +20,8 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class MagazineService {
 
+    final static int MAX_TEXT_LENGTH = 1000;
+
     private final MemberRepository memberRepository;
     private final MagazineRepository magazineRepository;
     private final MagazinePageRepository magazinePageRepository;
@@ -39,12 +41,14 @@ public class MagazineService {
         magazineRepository.save(magazine);
 
         request.getPageList().forEach(p -> {
-            if(p.getText().length() > 1000) {
+            if(p.getText().length() > MAX_TEXT_LENGTH) {
                 throw new BaseException(BaseExceptionStatus.EXCEED_TEXT_LENGTH);
             }
+
             MagazinePage page = MagazinePage.builder()
                     .text(p.getText())
                     .build();
+
             // 스크랩 콘텐츠 가져와서 MagazinePage와 세팅
             // Scrap scrap = scrapRepository.findById(page.getScrapId()).orElseThrow();
             // page.setScrap(scrap);
