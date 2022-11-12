@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import pickRAP.server.common.BaseEntity;
 import pickRAP.server.domain.member.Member;
 
 import javax.persistence.*;
@@ -13,7 +14,7 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Magazine {
+public class Magazine extends BaseEntity {
     @Id
     @GeneratedValue
     @Column(name = "magazine_id")
