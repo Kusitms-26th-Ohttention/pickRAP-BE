@@ -6,8 +6,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pickRAP.server.common.BaseEntity;
 import pickRAP.server.domain.category.Category;
+import pickRAP.server.domain.magazine.Magazine;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -40,6 +42,9 @@ public class Member extends BaseEntity {
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<Category> categories;
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<Magazine> magazines;
 
     @Builder
     public Member(String email, SocialType socialType, String password, String name, String profileImageUrl) {
