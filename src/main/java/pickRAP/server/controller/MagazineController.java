@@ -1,5 +1,8 @@
 package pickRAP.server.controller;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,6 +28,11 @@ public class MagazineController {
     private final AuthService authService;
 
     @PostMapping("/magazine/{template}")
+    @ApiOperation(value = "매거진 제작하기", notes = "매거진을 생성하는 api")
+    @ApiResponses({
+            @ApiResponse(responseCode = "500", description = "5001-매거진페이지수초과, 5002-매거진텍스트글자수초과"),
+            @ApiResponse(responseCode = "500", description = "서버 예외")
+    })
     public ResponseEntity<BaseResponse> saveMagazine(
             @PathVariable(name="template") String template,
             @RequestBody MagazineRequest magazineRequest) {
@@ -33,8 +41,7 @@ public class MagazineController {
             throw new BaseException(BaseExceptionStatus.EXCEED_PAGE_SIZE);
         }
 
-        // String email = authService.getUserEmail();
-        String email = "luck732002@naver.com";
+        String email = authService.getUserEmail();
         magazineService.save(magazineRequest, email, template);
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
