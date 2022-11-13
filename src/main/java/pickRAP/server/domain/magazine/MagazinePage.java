@@ -14,7 +14,7 @@ public class MagazinePage {
     @Column(name = "page_id")
     private Long id;
 
-    @Column(name = "text", length = 1000)
+    @Column(name = "text", length = 400)
     private String text;
 
     @Column(name = "page_order")

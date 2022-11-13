@@ -20,7 +20,7 @@ public class Magazine extends BaseEntity {
     @Column(name = "magazine_id")
     private Long id;
 
-    @Column(name = "title")
+    @Column(name = "title", length = 40)
     private String title;
 
     @Column(name = "open_status")
