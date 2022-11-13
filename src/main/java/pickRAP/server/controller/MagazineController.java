@@ -1,6 +1,7 @@
 package pickRAP.server.controller;
 
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class MagazineController {
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
     public ResponseEntity<BaseResponse> saveMagazine(
+            @ApiParam(value = "template type : image, video, text, link, pdf")
             @PathVariable(name="template") String template,
             @RequestBody MagazineRequest magazineRequest) {
 
