@@ -22,6 +22,7 @@ import pickRAP.server.domain.member.Member;
 import pickRAP.server.domain.member.SocialType;
 import pickRAP.server.repository.member.MemberRepository;
 import pickRAP.server.service.auth.AuthService;
+import pickRAP.server.service.category.CategoryService;
 
 @Slf4j
 @Component
@@ -31,6 +32,7 @@ public class KakaoEnv implements ProviderEnv{
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
+    private final CategoryService categoryService;
 
     @Value("${kakao.client-id}")
     private String clientId;
@@ -112,13 +114,15 @@ public class KakaoEnv implements ProviderEnv{
 
     public String socialLogin(KakaoProfile profile) {
         if (memberRepository.findByEmail(Long.toString(profile.getId()) + profile.getKakao_account().getEmail()).isEmpty()) {
-            memberRepository.save(Member.builder()
+            Member member = Member.builder()
                     .email(Long.toString(profile.getId()) + profile.getKakao_account().getEmail())
                     .password(passwordEncoder.encode(profile.getKakao_account().getEmail()))
                     .name(profile.getKakao_account().getProfile().getNickname())
                     .profileImageUrl("user_default_profile.png")
                     .socialType(SocialType.KAKAO)
-                    .build());
+                    .build();
+            memberRepository.save(member);
+            categoryService.initial(member);
         }
 
         return authService.authenticationMember(Long.toString(profile.getId()) + profile.getKakao_account().getEmail(), profile.getKakao_account().getEmail());

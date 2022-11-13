@@ -8,6 +8,7 @@ import pickRAP.server.common.BaseEntity;
 import pickRAP.server.domain.category.Category;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -39,7 +40,7 @@ public class Member extends BaseEntity {
     private SocialType socialType;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<Category> categories;
+    private List<Category> categories = new ArrayList<>();
 
     @Builder
     public Member(String email, SocialType socialType, String password, String name, String profileImageUrl) {
