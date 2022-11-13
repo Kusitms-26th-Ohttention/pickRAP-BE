@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseExceptionStatus;
 import pickRAP.server.controller.dto.magazine.MagazineListResponse;
+import pickRAP.server.controller.dto.magazine.MagazinePageResponse;
 import pickRAP.server.controller.dto.magazine.MagazineRequest;
 import pickRAP.server.controller.dto.magazine.MagazineResponse;
 import pickRAP.server.domain.magazine.Magazine;
@@ -48,7 +49,7 @@ public class MagazineService {
         magazineRepository.save(magazine);
 
         request.getPageList().forEach(p -> {
-            if(p.getText().length() > MAX_TEXT_LENGTH) {
+            if (p.getText().length() > MAX_TEXT_LENGTH) {
                 throw new BaseException(BaseExceptionStatus.EXCEED_TEXT_LENGTH);
             }
 
@@ -79,9 +80,26 @@ public class MagazineService {
             m.getPages().get(0).getScrap().getContents()
         */
         List<MagazineListResponse> collect = findMagazines.stream()
-                .map(m-> new MagazineListResponse(m.getId(), m.getTitle()))
+                .map(m -> new MagazineListResponse(m.getId(), m.getTitle()))
                 .collect(Collectors.toList());
 
         return collect;
+    }
+
+    @Transactional(readOnly = true)
+    public MagazineResponse findMagazine(Long magazineId) {
+        Magazine findMagazine = magazineRepository.findById(magazineId).orElseThrow();
+        List<MagazinePage> findMagazinePages = findMagazine.getPages();
+
+        List<MagazinePageResponse> magazinePages = findMagazinePages.stream()
+                .map(p -> new MagazinePageResponse(p.getId(), p.getText()))
+                .collect(Collectors.toList());
+
+        MagazineResponse magazine = new MagazineResponse(
+                findMagazine.getId(), findMagazine.getTitle(),
+                findMagazine.getTemplate(), findMagazine.isOpenStatus(),
+                findMagazine.getCreateTime(), magazinePages);
+
+        return magazine;
     }
 }

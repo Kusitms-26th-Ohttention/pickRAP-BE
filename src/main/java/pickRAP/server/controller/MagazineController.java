@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseExceptionStatus;
 import pickRAP.server.common.BaseResponse;
-import pickRAP.server.common.URLPreview;
 import pickRAP.server.controller.dto.magazine.MagazineListResponse;
 import pickRAP.server.controller.dto.magazine.MagazineRequest;
+import pickRAP.server.controller.dto.magazine.MagazineResponse;
 import pickRAP.server.service.auth.AuthService;
 import pickRAP.server.service.magazine.MagazineService;
 
@@ -59,6 +59,17 @@ public class MagazineController {
         String email = authService.getUserEmail();
 
         List<MagazineListResponse> response = magazineService.findMagazines(email);
+
+        return ResponseEntity.ok(new BaseResponse(response));
+    }
+
+    @GetMapping("/magazine/{magazine_id}")
+    @ApiOperation(value = "매거진 상세 내용 보기", notes = "클릭한 매거진의 상세 내용을 출력하는 api")
+    @ApiResponses({
+            @ApiResponse(responseCode = "500", description = "서버 예외")
+    })
+    public ResponseEntity<BaseResponse> getMagazine(@PathVariable(name="magazine_id") Long magazineId) {
+        MagazineResponse response = magazineService.findMagazine(magazineId);
 
         return ResponseEntity.ok(new BaseResponse(response));
     }
