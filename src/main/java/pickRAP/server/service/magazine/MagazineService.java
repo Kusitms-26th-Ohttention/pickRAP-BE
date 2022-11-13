@@ -67,7 +67,7 @@ public class MagazineService {
     }
 
     @Transactional(readOnly = true)
-    public List<MagazineListResponse> findMagazine(String email) {
+    public List<MagazineListResponse> findMagazines(String email) {
         List<Magazine> findMagazines = magazineRepositoryCustom.findMemberMagazines(email);
 
         /*

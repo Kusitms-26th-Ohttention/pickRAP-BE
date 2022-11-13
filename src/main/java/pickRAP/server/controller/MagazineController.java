@@ -58,7 +58,7 @@ public class MagazineController {
     public ResponseEntity<BaseResponse> getMagazineList() {
         String email = authService.getUserEmail();
 
-        List<MagazineListResponse> response = magazineService.findMagazine(email);
+        List<MagazineListResponse> response = magazineService.findMagazines(email);
 
         return ResponseEntity.ok(new BaseResponse(response));
     }
