@@ -6,16 +6,17 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseExceptionStatus;
 import pickRAP.server.common.BaseResponse;
+import pickRAP.server.common.URLPreview;
+import pickRAP.server.controller.dto.magazine.MagazineListResponse;
 import pickRAP.server.controller.dto.magazine.MagazineRequest;
 import pickRAP.server.service.auth.AuthService;
 import pickRAP.server.service.magazine.MagazineService;
+
+import java.util.List;
 
 import static pickRAP.server.common.BaseExceptionStatus.SUCCESS;
 
@@ -47,5 +48,18 @@ public class MagazineController {
         magazineService.save(magazineRequest, email, template);
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
+    }
+
+    @GetMapping("/magazine")
+    @ApiOperation(value = "내 매거진 목록 불러오기", notes = "사용자의 매거진 목록을 출력하는 api")
+    @ApiResponses({
+            @ApiResponse(responseCode = "500", description = "서버 예외")
+    })
+    public ResponseEntity<BaseResponse> getMagazineList() {
+        String email = authService.getUserEmail();
+
+        List<MagazineListResponse> response = magazineService.findMagazine(email);
+
+        return ResponseEntity.ok(new BaseResponse(response));
     }
 }
