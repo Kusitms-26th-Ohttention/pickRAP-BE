@@ -17,6 +17,7 @@ import pickRAP.server.controller.dto.auth.MemberSignUpRequest;
 import pickRAP.server.domain.member.Member;
 import pickRAP.server.domain.member.SocialType;
 import pickRAP.server.repository.member.MemberRepository;
+import pickRAP.server.service.category.CategoryService;
 import pickRAP.server.util.RedisClient;
 
 import javax.servlet.http.HttpServletRequest;
@@ -35,6 +36,7 @@ public class AuthService {
     private final TokenProvider tokenProvider;
     private final RedisClient redisClient;
     private final PasswordEncoder passwordEncoder;
+    private final CategoryService categoryService;
 
 
     /*
@@ -44,14 +46,15 @@ public class AuthService {
         if(memberRepository.existsByEmail(memberSignUpRequest.getEmail())){
             throw new BaseException(EXIST_ACCOUNT);
         }
-        memberRepository.save(Member.builder()
-                        .email(memberSignUpRequest.getEmail())
-                        .name(memberSignUpRequest.getName())
-                        .password(passwordEncoder.encode(memberSignUpRequest.getPassword()))
-                        .profileImageUrl("user_default_profile.png")
-                        .socialType(SocialType.NONE)
-                        .build()
-        );
+        Member member = Member.builder()
+                .email(memberSignUpRequest.getEmail())
+                .name(memberSignUpRequest.getName())
+                .password(passwordEncoder.encode(memberSignUpRequest.getPassword()))
+                .profileImageUrl("user_default_profile.png")
+                .socialType(SocialType.NONE)
+                .build();
+        memberRepository.save(member);
+        categoryService.initial(member);
     }
 
     /*

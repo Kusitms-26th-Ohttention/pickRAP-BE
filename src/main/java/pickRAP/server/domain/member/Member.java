@@ -41,7 +41,7 @@ public class Member extends BaseEntity {
     private SocialType socialType;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
-    private List<Category> categories;
+    private List<Category> categories = new ArrayList<>();
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<Magazine> magazines;
