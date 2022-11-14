@@ -76,7 +76,7 @@ public class MagazineController {
     }
 
     @PutMapping("/magazine/{magazine_id}")
-    @ApiOperation(value = "매거진 상세 내용 보기", notes = "클릭한 매거진의 상세 내용을 출력하는 api")
+    @ApiOperation(value = "매거진 내용 수정하기", notes = "매거진 내용을 수정하는 api")
     @ApiResponses({
             @ApiResponse(responseCode = "500", description = "5001-매거진페이지수초과, 5002-매거진텍스트글자수초과"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
@@ -88,8 +88,23 @@ public class MagazineController {
         if(request.getPageList().size() > MAX_PAGE_SIZE) {
             throw new BaseException(BaseExceptionStatus.EXCEED_PAGE_SIZE);
         }
+        String email = authService.getUserEmail();
 
-        magazineService.updateMagazine(request, magazineId);
+        magazineService.updateMagazine(request, magazineId, email);
+
+        return ResponseEntity.ok(new BaseResponse(SUCCESS));
+    }
+
+    @PutMapping("/magazine/{magazine_id}/open-status")
+    @ApiOperation(value = "매거진 공개여부 수정하기", notes = "매거진의 공개 여부를 수정하는 api")
+    @ApiResponses({
+            @ApiResponse(responseCode = "500", description = "5003-작성자불일치"),
+            @ApiResponse(responseCode = "500", description = "서버 예외")
+            })
+    public ResponseEntity<BaseResponse> updateOpenStatus(@PathVariable(name="magazine_id") Long magazineId) {
+        String email = authService.getUserEmail();
+
+        magazineService.updateOpenStatus(magazineId, email);
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }

@@ -85,8 +85,12 @@ public class MagazineService {
     }
 
     @Transactional
-    public void updateMagazine(MagazineUpdateRequest request, Long magazineId) {
+    public void updateMagazine(MagazineUpdateRequest request, Long magazineId, String email) {
         Magazine findMagazine = magazineRepository.findById(magazineId).orElseThrow();
+
+        if(!findMagazine.checkWriter(email)) {
+            new BaseException(BaseExceptionStatus.NOT_MATCH_WRITER);
+        }
 
         findMagazine.updateTitle(request.getTitle());
 
@@ -117,5 +121,18 @@ public class MagazineService {
         });
 
         magazineRepository.save(magazine);
+    }
+
+    @Transactional
+    public void updateOpenStatus(Long magazineId, String email) {
+        Magazine findMagazine = magazineRepository.findById(magazineId).orElseThrow();
+
+        if(!findMagazine.checkWriter(email)) {
+            new BaseException(BaseExceptionStatus.NOT_MATCH_WRITER);
+        }
+
+        findMagazine.updateOpenStatus();
+
+        return;
     }
 }

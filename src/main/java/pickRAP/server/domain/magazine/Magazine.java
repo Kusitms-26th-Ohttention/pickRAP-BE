@@ -53,4 +53,16 @@ public class Magazine extends BaseEntity {
             this.title = title;
         }
     }
+
+    public void updateOpenStatus() {
+        this.openStatus = !this.openStatus;
+    }
+
+    public boolean checkWriter(String email) {
+        if(email.equals(this.member.getEmail())) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
