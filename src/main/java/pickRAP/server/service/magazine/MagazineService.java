@@ -146,4 +146,12 @@ public class MagazineService {
 
         magazineRepository.delete(findMagazine);
     }
+
+    @Transactional
+    public void deleteMagazines(List<Long> magazineIds, String email) {
+        magazineIds.forEach(m-> {
+            deleteMagazine(m, email);
+        });
+    }
+
 }

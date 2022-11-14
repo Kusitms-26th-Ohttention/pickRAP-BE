@@ -10,10 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseExceptionStatus;
 import pickRAP.server.common.BaseResponse;
-import pickRAP.server.controller.dto.magazine.MagazineListResponse;
-import pickRAP.server.controller.dto.magazine.MagazineRequest;
-import pickRAP.server.controller.dto.magazine.MagazineResponse;
-import pickRAP.server.controller.dto.magazine.MagazineUpdateRequest;
+import pickRAP.server.controller.dto.magazine.*;
 import pickRAP.server.service.auth.AuthService;
 import pickRAP.server.service.magazine.MagazineService;
 
@@ -109,16 +106,20 @@ public class MagazineController {
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
 
-    @DeleteMapping("/magazine/{magazine_id}")
+    @DeleteMapping("/magazine")
     @ApiOperation(value = "매거진 삭제하기", notes = "매거진을 삭제하는 api")
     @ApiResponses({
-            @ApiResponse(responseCode = "500", description = "5003-작성자불일치"),
+            @ApiResponse(responseCode = "500", description = "5003-작성자불일치, 5004-선택된매거지없음"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse> deleteMagazine(@PathVariable(name="magazine_id") Long magazineId) {
-        String email = "luck732002@naver.com";
+    public ResponseEntity<BaseResponse> deleteMagazine(@RequestBody MagazineDeleteRequest request) {
+        if(request.getMagazines().size() == 0) {
+            throw new BaseException(BaseExceptionStatus.FAIL_DELETE_MAGAZINE);
+        }
 
-        magazineService.deleteMagazine(magazineId, email);
+        String email = authService.getUserEmail();
+
+        magazineService.deleteMagazines(request.getMagazines(), email);
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
