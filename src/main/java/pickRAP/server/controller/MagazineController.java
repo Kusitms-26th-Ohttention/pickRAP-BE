@@ -108,4 +108,18 @@ public class MagazineController {
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
+
+    @DeleteMapping("/magazine/{magazine_id}")
+    @ApiOperation(value = "매거진 삭제하기", notes = "매거진을 삭제하는 api")
+    @ApiResponses({
+            @ApiResponse(responseCode = "500", description = "5003-작성자불일치"),
+            @ApiResponse(responseCode = "500", description = "서버 예외")
+    })
+    public ResponseEntity<BaseResponse> deleteMagazine(@PathVariable(name="magazine_id") Long magazineId) {
+        String email = "luck732002@naver.com";
+
+        magazineService.deleteMagazine(magazineId, email);
+
+        return ResponseEntity.ok(new BaseResponse(SUCCESS));
+    }
 }

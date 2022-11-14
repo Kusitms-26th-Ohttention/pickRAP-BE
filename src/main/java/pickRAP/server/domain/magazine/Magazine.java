@@ -33,7 +33,7 @@ public class Magazine extends BaseEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToMany(mappedBy = "magazine")
+    @OneToMany(mappedBy = "magazine", cascade = CascadeType.ALL)
     private List<MagazinePage> pages = new ArrayList<>();
 
     @Builder

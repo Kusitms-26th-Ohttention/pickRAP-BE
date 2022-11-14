@@ -88,9 +88,7 @@ public class MagazineService {
     public void updateMagazine(MagazineUpdateRequest request, Long magazineId, String email) {
         Magazine findMagazine = magazineRepository.findById(magazineId).orElseThrow();
 
-        if(!findMagazine.checkWriter(email)) {
-            new BaseException(BaseExceptionStatus.NOT_MATCH_WRITER);
-        }
+        checkMatchWriter(findMagazine, email);
 
         findMagazine.updateTitle(request.getTitle());
 
@@ -127,12 +125,25 @@ public class MagazineService {
     public void updateOpenStatus(Long magazineId, String email) {
         Magazine findMagazine = magazineRepository.findById(magazineId).orElseThrow();
 
-        if(!findMagazine.checkWriter(email)) {
-            new BaseException(BaseExceptionStatus.NOT_MATCH_WRITER);
-        }
+        checkMatchWriter(findMagazine, email);
 
         findMagazine.updateOpenStatus();
 
         return;
+    }
+
+    public void checkMatchWriter(Magazine magazine, String email) {
+        if(!magazine.checkWriter(email)) {
+            new BaseException(BaseExceptionStatus.NOT_MATCH_WRITER);
+        }
+    }
+
+    @Transactional
+    public void deleteMagazine(Long magazineId, String email) {
+        Magazine findMagazine = magazineRepository.findById(magazineId).orElseThrow();
+
+        checkMatchWriter(findMagazine, email);
+
+        magazineRepository.delete(findMagazine);
     }
 }
