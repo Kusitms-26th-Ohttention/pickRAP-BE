@@ -19,9 +19,6 @@ public class MagazinePage {
     @Column(name = "text", length = 400)
     private String text;
 
-    @Column(name = "page_order")
-    private Long pageOrder;
-
     @ManyToOne
     @JoinColumn(name = "magazine_id")
     private Magazine magazine;
@@ -30,14 +27,14 @@ public class MagazinePage {
     //    private Scrap scrap;
 
     @Builder
-    public MagazinePage (String text, Long pageOrder) {
+    public MagazinePage (String text) {
         // this.scrap = scrap;
         this.text = text;
-        this.pageOrder = pageOrder;
     }
 
     public void setMagazine(Magazine magazine) {
         this.magazine = magazine;
         magazine.getPages().add(this);
     }
+
 }

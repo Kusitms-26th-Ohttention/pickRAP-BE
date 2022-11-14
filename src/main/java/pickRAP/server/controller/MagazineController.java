@@ -13,6 +13,7 @@ import pickRAP.server.common.BaseResponse;
 import pickRAP.server.controller.dto.magazine.MagazineListResponse;
 import pickRAP.server.controller.dto.magazine.MagazineRequest;
 import pickRAP.server.controller.dto.magazine.MagazineResponse;
+import pickRAP.server.controller.dto.magazine.MagazineUpdateRequest;
 import pickRAP.server.service.auth.AuthService;
 import pickRAP.server.service.magazine.MagazineService;
 
@@ -38,14 +39,14 @@ public class MagazineController {
     public ResponseEntity<BaseResponse> saveMagazine(
             @ApiParam(value = "template type : image, video, text, link, pdf")
             @PathVariable(name="template") String template,
-            @RequestBody MagazineRequest magazineRequest) {
+            @RequestBody MagazineRequest request) {
 
-        if(magazineRequest.getPageList().size() > MAX_PAGE_SIZE) {
+        if(request.getPageList().size() > MAX_PAGE_SIZE) {
             throw new BaseException(BaseExceptionStatus.EXCEED_PAGE_SIZE);
         }
 
         String email = authService.getUserEmail();
-        magazineService.save(magazineRequest, email, template);
+        magazineService.save(request, email, template);
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
@@ -72,5 +73,24 @@ public class MagazineController {
         MagazineResponse response = magazineService.findMagazine(magazineId);
 
         return ResponseEntity.ok(new BaseResponse(response));
+    }
+
+    @PutMapping("/magazine/{magazine_id}")
+    @ApiOperation(value = "매거진 상세 내용 보기", notes = "클릭한 매거진의 상세 내용을 출력하는 api")
+    @ApiResponses({
+            @ApiResponse(responseCode = "500", description = "5001-매거진페이지수초과, 5002-매거진텍스트글자수초과"),
+            @ApiResponse(responseCode = "500", description = "서버 예외")
+    })
+    public ResponseEntity<BaseResponse> updateMagazine(
+            @PathVariable(name="magazine_id") Long magazineId,
+            @RequestBody MagazineUpdateRequest request) {
+
+        if(request.getPageList().size() > MAX_PAGE_SIZE) {
+            throw new BaseException(BaseExceptionStatus.EXCEED_PAGE_SIZE);
+        }
+
+        magazineService.updateMagazine(request, magazineId);
+
+        return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
 }

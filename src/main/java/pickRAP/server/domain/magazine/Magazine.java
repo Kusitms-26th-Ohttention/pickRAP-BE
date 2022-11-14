@@ -47,4 +47,10 @@ public class Magazine extends BaseEntity {
         this.member = member;
         member.getMagazines().add(this);
     }
+
+    public void updateTitle(String title) {
+        if(!this.title.equals(title)) {
+            this.title = title;
+        }
+    }
 }

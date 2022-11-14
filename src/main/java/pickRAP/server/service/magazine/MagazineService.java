@@ -5,10 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseExceptionStatus;
-import pickRAP.server.controller.dto.magazine.MagazineListResponse;
-import pickRAP.server.controller.dto.magazine.MagazinePageResponse;
-import pickRAP.server.controller.dto.magazine.MagazineRequest;
-import pickRAP.server.controller.dto.magazine.MagazineResponse;
+import pickRAP.server.controller.dto.magazine.*;
 import pickRAP.server.domain.magazine.Magazine;
 import pickRAP.server.domain.magazine.MagazinePage;
 import pickRAP.server.domain.magazine.MagazineTemplate;
@@ -36,7 +33,7 @@ public class MagazineService {
 
     @Transactional
     public void save(MagazineRequest request, String email, String template) {
-        Member writer = memberRepository.findByEmail(email).orElseThrow();
+        Member member = memberRepository.findByEmail(email).orElseThrow();
 
         Magazine magazine = Magazine.builder()
                 .title(request.getTitle())
@@ -44,26 +41,10 @@ public class MagazineService {
                 .template(MagazineTemplate.valueOf(template.toUpperCase(Locale.ROOT)))
                 .build();
 
-        magazine.setMember(writer);
+        magazine.setMember(member);
 
-        magazineRepository.save(magazine);
+        saveMagazinePages(request.getPageList(), magazine);
 
-        request.getPageList().forEach(p -> {
-            if (p.getText().length() > MAX_TEXT_LENGTH) {
-                throw new BaseException(BaseExceptionStatus.EXCEED_TEXT_LENGTH);
-            }
-
-            MagazinePage page = MagazinePage.builder()
-                    .text(p.getText())
-                    .build();
-
-            // 스크랩 콘텐츠 가져와서 MagazinePage와 세팅
-            // Scrap scrap = scrapRepository.findById(page.getScrapId()).orElseThrow();
-            // page.setScrap(scrap);
-
-            page.setMagazine(magazine);
-            magazinePageRepository.save(page);
-        });
         return;
     }
 
@@ -101,5 +82,40 @@ public class MagazineService {
                 findMagazine.getCreateTime(), magazinePages);
 
         return magazine;
+    }
+
+    @Transactional
+    public void updateMagazine(MagazineUpdateRequest request, Long magazineId) {
+        Magazine findMagazine = magazineRepository.findById(magazineId).orElseThrow();
+
+        findMagazine.updateTitle(request.getTitle());
+
+        magazinePageRepository.deleteByMagazine(findMagazine);
+
+        saveMagazinePages(request.getPageList(), findMagazine);
+
+        return;
+    }
+
+    @Transactional
+    public void saveMagazinePages(List<MagazinePageRequest> requestList, Magazine magazine) {
+        requestList.forEach(p -> {
+            if (p.getText().length() > MAX_TEXT_LENGTH) {
+                throw new BaseException(BaseExceptionStatus.EXCEED_TEXT_LENGTH);
+            }
+
+            MagazinePage page = MagazinePage.builder()
+                    .text(p.getText())
+                    .build();
+
+            // 스크랩 콘텐츠 가져와서 MagazinePage와 세팅
+            // Scrap scrap = scrapRepository.findById(page.getScrapId()).orElseThrow();
+            // page.setScrap(scrap);
+
+            page.setMagazine(magazine);
+            magazinePageRepository.save(page);
+        });
+
+        magazineRepository.save(magazine);
     }
 }
