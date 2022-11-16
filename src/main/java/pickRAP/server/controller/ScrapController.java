@@ -43,7 +43,8 @@ public class ScrapController {
     }
 
     @GetMapping("/{filter}")
-    @ApiOperation(value = "스크랩 필터링 & 검색", notes = "전체, 카테고리, 컨텐츠, 검색별로 스크랩 필터링, body는 category면 카테고리 category_id, search면 search_keyword")
+    @ApiOperation(value = "스크랩 필터링 & 검색", notes = "(전체, 카테고리, 컨텐츠, 검색별로 스크랩 필터링) body는 category면 카테고리 category_id, " +
+            "keyword는 search_keyword, 정렬은 order_keyword(desc는 최근생성, asc 오래된생성순)")
     @ApiResponses({
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })

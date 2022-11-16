@@ -11,4 +11,7 @@ public class ScrapFilterRequest {
 
     @JsonProperty("search_keyword")
     private String searchKeyword;
+
+    @JsonProperty("order_keyword")
+    private String orderKeyword;
 }

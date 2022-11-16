@@ -1,5 +1,6 @@
 package pickRAP.server.repository.scrap;
 
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +41,7 @@ public class ScrapRepositoryImpl implements ScrapRepositoryCustom {
                 .leftJoin(scrap.category, category)
                 .leftJoin(scrap.scrapHashtags, scrapHashtag)
                 .where(
-                        ltLastScrapId(lastScrapId),
+                        ltLastScrapId(lastScrapId, scrapFilterCondition.getOrderKeyword()),
 
                         scrap.member.id.eq(scrapFilterCondition.getMemberId()),
 
@@ -48,7 +49,7 @@ public class ScrapRepositoryImpl implements ScrapRepositoryCustom {
                         categoryEq(scrapFilterCondition.getCategoryId()),
                         titleTagLike(scrapFilterCondition.getSearchKeyword())
                 )
-                .orderBy(scrap.createTime.desc())
+                .orderBy(orderSpecifier(scrapFilterCondition.getOrderKeyword()))
                 .limit(pageable.getPageSize() + 1)
                 .fetch();
 
@@ -67,8 +68,18 @@ public class ScrapRepositoryImpl implements ScrapRepositoryCustom {
         return StringUtils.hasText(searchKeyword) ? scrap.title.contains(searchKeyword).or(scrapHashtag.hashtag.tag.contains(searchKeyword)) : null;
     }
 
-    private BooleanExpression ltLastScrapId(Long scrapId) {
-        return scrapId != null ? scrap.id.lt(scrapId) : null;
+    private BooleanExpression ltLastScrapId(Long scrapId, String orderKeyword) {
+        if(scrapId == null) {
+            return null;
+        } else if(StringUtils.isEmpty(orderKeyword)) {
+            return scrap.id.lt(scrapId);
+        } else if(orderKeyword.equals("desc")) {
+            return scrap.id.lt(scrapId);
+        } else if(orderKeyword.equals("asc")) {
+            return scrap.id.gt(scrapId);
+        } else {
+            return null;
+        }
     }
 
     private Slice<ScrapResponse> checkLastPage(List<ScrapResponse> scrapResponses, Pageable pageable) {
@@ -80,5 +91,17 @@ public class ScrapRepositoryImpl implements ScrapRepositoryCustom {
         }
 
         return new SliceImpl<>(scrapResponses, pageable, hasNext);
+    }
+
+    private OrderSpecifier orderSpecifier(String orderKeyword) {
+        if(StringUtils.isEmpty(orderKeyword)) {
+            return scrap.createTime.desc();
+        } else if(orderKeyword.equals("desc")) {
+            return scrap.createTime.desc();
+        } else if(orderKeyword.equals("asc")) {
+            return scrap.createTime.asc();
+        } else {
+            return null;
+        }
     }
 }

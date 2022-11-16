@@ -15,11 +15,14 @@ public class ScrapFilterCondition {
 
     private String searchKeyword;
 
+    private String orderKeyword;
+
     @Builder
-    public ScrapFilterCondition(ScrapType scrapType, Long categoryId, Long memberId, String searchKeyword) {
+    public ScrapFilterCondition(ScrapType scrapType, Long categoryId, Long memberId, String searchKeyword, String orderKeyword) {
         this.scrapType = scrapType;
         this.memberId = memberId;
         this.categoryId = categoryId;
         this.searchKeyword = searchKeyword;
+        this.orderKeyword = orderKeyword;
     }
 }

@@ -74,7 +74,7 @@ public class ScrapService {
     public Slice<ScrapResponse> filterPageScraps(String filter, ScrapFilterRequest scrapFilterRequest, String email, Pageable pageable) {
         Member member = memberRepository.findByEmail(email).orElseThrow();
         Slice<ScrapResponse> scrapResponses;
-        ScrapFilterCondition scrapFilterCondition = null;
+        ScrapFilterCondition scrapFilterCondition;
 
         if(filter.equals("category")) {
             if(Objects.isNull(scrapFilterRequest.getCategoryId())) {
@@ -83,12 +83,14 @@ public class ScrapService {
 
             scrapFilterCondition = ScrapFilterCondition.builder()
                     .categoryId(scrapFilterRequest.getCategoryId())
+                    .orderKeyword(scrapFilterRequest.getOrderKeyword())
                     .memberId(member.getId())
                     .build();
         } else if(filter.equals("text") || filter.equals("link")
                 || filter.equals("image") || filter.equals("video") || filter.equals("pdf")) {
             scrapFilterCondition = ScrapFilterCondition.builder()
                     .scrapType(ScrapType.valueOf(filter.toUpperCase(Locale.ROOT)))
+                    .orderKeyword(scrapFilterRequest.getOrderKeyword())
                     .memberId(member.getId())
                     .build();
         } else if (filter.equals("keyword")) {
@@ -98,10 +100,14 @@ public class ScrapService {
 
             scrapFilterCondition = ScrapFilterCondition.builder()
                     .searchKeyword(scrapFilterRequest.getSearchKeyword())
+                    .orderKeyword(scrapFilterRequest.getOrderKeyword())
                     .memberId(member.getId())
                     .build();
         } else if (filter.equals("all")) {
-            scrapFilterCondition = ScrapFilterCondition.builder().memberId(member.getId()).build();
+            scrapFilterCondition = ScrapFilterCondition.builder()
+                    .memberId(member.getId())
+                    .orderKeyword(scrapFilterRequest.getOrderKeyword())
+                    .build();
         } else {
             throw new BaseException(BaseExceptionStatus.DONT_EXIST_PATH);
         }
@@ -109,7 +115,13 @@ public class ScrapService {
         if(pageable.getPageNumber() == 0) {
             scrapResponses = scrapRepository.filterPageScraps(null, scrapFilterCondition, pageable);
         } else {
-            scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() + 1), scrapFilterCondition, pageable);
+            if(StringUtils.isEmpty(scrapFilterCondition.getOrderKeyword())) {
+                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() + 1), scrapFilterCondition, pageable);
+            } else if(scrapFilterCondition.getOrderKeyword().equals("asc")) {
+                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() - 1), scrapFilterCondition, pageable);
+            } else {
+                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() + 1), scrapFilterCondition, pageable);
+            }
         }
 
         //로직 고민
