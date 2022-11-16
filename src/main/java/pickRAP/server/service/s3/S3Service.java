@@ -47,8 +47,8 @@ public class S3Service {
 
             amazonS3Client.putObject(new PutObjectRequest(bucket, fileName, inputStream, objectMetadata));
 
-//            return amazonS3Client.getUrl(bucket, fileName).toString();
-            return fileName;
+            return amazonS3Client.getUrl(bucket, fileName).toString();
+//            return fileName;
         } catch (IOException e) {
             throw new BaseException(BaseExceptionStatus.FILE_UPLOAD_FAIL);
         }

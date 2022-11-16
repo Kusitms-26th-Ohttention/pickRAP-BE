@@ -21,6 +21,7 @@ public class CategoryRepositoryImpl implements CategoryRepositoryCustom {
         return queryFactory
                 .selectFrom(category)
                 .where(category.member.eq(findMember))
+                .orderBy(category.createTime.desc())
                 .fetch();
     }
 

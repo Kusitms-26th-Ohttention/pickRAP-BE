@@ -27,6 +27,14 @@ public enum BaseExceptionStatus {
     EXIST_CATEGORY(HttpStatus.BAD_REQUEST, 4004, "이미 존재하는 카테고리입니다"),
     SAME_CATEGORY(HttpStatus.BAD_REQUEST, 4005, "변경하려는 카테고리의 이름이 같습니다"),
     DONT_EXIST_CATEGORY(HttpStatus.BAD_REQUEST, 4006, "카테고리가 존재하지 않습니다"),
+    SCRAP_TITLE_LONG(HttpStatus.BAD_REQUEST, 4007, "제목이 15자를 초과했습니다"),
+    DONT_EXIST_FILE(HttpStatus.BAD_REQUEST, 4008, "파일이 존재하지 않습니다"),
+    DONT_EXIST_SCRAP(HttpStatus.BAD_REQUEST, 4009, "스크랩이 존재하지 않습니다"),
+    CANT_DELETE_CATE(HttpStatus.BAD_REQUEST, 4010, "기본 카테고리는 삭제할 수 없습니다"),
+    CATEGORY_TITLE_LONG(HttpStatus.BAD_REQUEST, 4011, "제목이 20자를 초과했습니다"),
+    DONT_EXIST_KEYWORD(HttpStatus.BAD_REQUEST, 4012, "검색어를 입력해주세요"),
+    DONT_EXIST_PATH(HttpStatus.BAD_REQUEST, 4013, "경로가 잘못되었습니다"),
+    DONT_EXIST_CONTENT(HttpStatus.BAD_REQUEST, 4014, "컨텐츠를 입력해주세요"),
 
     // 메거진
     EXCEED_PAGE_SIZE(HttpStatus.BAD_REQUEST, 5001, "매거진 페이지는 최대 20장까지 제작 가능합니다."),
