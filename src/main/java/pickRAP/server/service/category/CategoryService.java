@@ -4,15 +4,20 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseExceptionStatus;
 import pickRAP.server.controller.dto.category.CategoryRequest;
 import pickRAP.server.controller.dto.category.CategoryResponse;
+import pickRAP.server.controller.dto.category.CategoryScrapResponse;
 import pickRAP.server.domain.category.Category;
 import pickRAP.server.domain.member.Member;
+import pickRAP.server.domain.scrap.Scrap;
 import pickRAP.server.repository.category.CategoryRepository;
 import pickRAP.server.repository.member.MemberRepository;
+import pickRAP.server.repository.scrap.ScrapRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,6 +27,8 @@ import java.util.stream.Collectors;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+
+    private final ScrapRepository scrapRepository;
 
     private final MemberRepository memberRepository;
 
@@ -37,6 +44,9 @@ public class CategoryService {
 
     @Transactional
     public CategoryResponse save(CategoryRequest categoryRequest, String email) {
+        if(!StringUtils.isEmpty(categoryRequest.getName()) && categoryRequest.getName().length() > 20) {
+            throw new BaseException(BaseExceptionStatus.CATEGORY_TITLE_LONG);
+        }
         if(categoryRepository.findMemberCategory(categoryRequest.getName(), email).isPresent()) {
             throw new BaseException(BaseExceptionStatus.EXIST_CATEGORY);
         }
@@ -58,8 +68,40 @@ public class CategoryService {
         return result.stream().map(c -> new CategoryResponse(c.getId(), c.getName())).collect(Collectors.toList());
     }
 
+    public List<CategoryScrapResponse> findMemberCategoriesScrap(String email) {
+        Member findMember = memberRepository.findByEmail(email).orElseThrow();
+
+        List<Category> result = categoryRepository.findMemberCategories(findMember);
+        List<CategoryScrapResponse> categoryScrapResponses = new ArrayList<>();
+
+        for(Category category : result) {
+            if(category.getScraps().isEmpty()) {
+                categoryScrapResponses.add(CategoryScrapResponse.builder()
+                        .id(category.getId())
+                        .name(category.getName())
+                        .build());
+            } else {
+                Scrap scrap = category.getScraps().get(category.getScraps().size() - 1);
+
+                categoryScrapResponses.add(CategoryScrapResponse.builder()
+                        .id(category.getId())
+                        .name(category.getName())
+                        .scrapType(scrap.getScrapType())
+                        .content(scrap.getContent())
+                        .fileUrl(scrap.getFileUrl())
+                        .build());
+            }
+        }
+
+        return categoryScrapResponses;
+    }
+
     @Transactional
     public void update(CategoryRequest categoryRequest, Long id, String email) {
+        if(!StringUtils.isEmpty(categoryRequest.getName()) && categoryRequest.getName().length() > 20) {
+            throw new BaseException(BaseExceptionStatus.CATEGORY_TITLE_LONG);
+        }
+
         Category findCategory = categoryRepository.findById(id).orElseThrow();
 
         if(findCategory.getName().equals(categoryRequest.getName())) {
@@ -73,9 +115,17 @@ public class CategoryService {
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(Long id, String email) {
         if(categoryRepository.findById(id).isEmpty()) {
             throw new BaseException(BaseExceptionStatus.DONT_EXIST_CATEGORY);
+        }
+        if(categoryRepository.findById(id).orElseThrow().getName().equals("미분류 카테고리")) {
+            throw new BaseException(BaseExceptionStatus.CANT_DELETE_CATE);
+        }
+
+        Category category = categoryRepository.findMemberCategory("미분류 카테고리", email).orElseThrow();
+        for(Scrap scrap : categoryRepository.findById(id).orElseThrow().getScraps()) {
+            scrap.setCategory(category);
         }
 
         categoryRepository.deleteById(id);

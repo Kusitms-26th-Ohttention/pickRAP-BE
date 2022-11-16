@@ -1,4 +1,4 @@
-package pickRAP.server.domain.category;
+package pickRAP.server.domain.scrap;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pickRAP.server.common.BaseEntity;
 import pickRAP.server.domain.member.Member;
-import pickRAP.server.domain.scrap.Scrap;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -15,33 +14,29 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Category extends BaseEntity {
+public class Hashtag extends BaseEntity {
 
     @Id
     @GeneratedValue
-    @Column(name = "category_id")
+    @Column(name = "hashtag_id")
     private Long id;
 
-    private String name;
+    private String tag;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToMany(mappedBy = "category")
-    private List<Scrap> scraps = new ArrayList<>();
+//    @OneToMany(mappedBy = "hashtag")
+//    private List<ScrapHashtag> scrapHashtags = new ArrayList<>();
 
     @Builder
-    public Category(String name) {
-        this.name = name;
+    public Hashtag(String tag) {
+        this.tag = tag;
     }
 
     public void setMember(Member member) {
         this.member = member;
-        member.getCategories().add(this);
-    }
-
-    public void updateName(String name) {
-        this.name = name;
+        member.getHashtags().add(this);
     }
 }

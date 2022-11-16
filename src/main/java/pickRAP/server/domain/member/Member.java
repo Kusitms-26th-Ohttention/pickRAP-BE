@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import pickRAP.server.common.BaseEntity;
 import pickRAP.server.domain.category.Category;
 import pickRAP.server.domain.magazine.Magazine;
+import pickRAP.server.domain.scrap.Hashtag;
+import pickRAP.server.domain.scrap.Scrap;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -45,6 +47,12 @@ public class Member extends BaseEntity {
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
     private List<Magazine> magazines;
+
+    @OneToMany(mappedBy = "member")
+    private List<Scrap> scraps = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member")
+    private List<Hashtag> hashtags = new ArrayList<>();
 
     @Builder
     public Member(String email, SocialType socialType, String password, String name, String profileImageUrl) {
