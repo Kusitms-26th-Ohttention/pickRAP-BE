@@ -116,17 +116,6 @@ public class MagazineService {
         magazineRepository.save(magazine);
     }
 
-    @Transactional
-    public void updateOpenStatus(Long magazineId, String email) {
-        Magazine findMagazine = magazineRepository.findById(magazineId).orElseThrow();
-
-        checkMatchWriter(findMagazine, email);
-
-        findMagazine.updateOpenStatus();
-
-        return;
-    }
-
     public void checkMatchWriter(Magazine magazine, String email) {
         if(!magazine.checkWriter(email)) {
             new BaseException(BaseExceptionStatus.NOT_MATCH_WRITER);

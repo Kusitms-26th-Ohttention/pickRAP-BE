@@ -87,20 +87,6 @@ public class MagazineController {
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
 
-    @PutMapping("/magazine/{magazine_id}/open-status")
-    @ApiOperation(value = "매거진 공개여부 수정하기", notes = "매거진의 공개 여부를 수정하는 api")
-    @ApiResponses({
-            @ApiResponse(responseCode = "500", description = "5003-작성자불일치"),
-            @ApiResponse(responseCode = "500", description = "서버 예외")
-            })
-    public ResponseEntity<BaseResponse> updateOpenStatus(@PathVariable(name="magazine_id") Long magazineId) {
-        String email = authService.getUserEmail();
-
-        magazineService.updateOpenStatus(magazineId, email);
-
-        return ResponseEntity.ok(new BaseResponse(SUCCESS));
-    }
-
     @DeleteMapping("/magazine")
     @ApiOperation(value = "매거진 삭제하기", notes = "매거진을 삭제하는 api")
     @ApiResponses({
