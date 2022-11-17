@@ -133,4 +133,9 @@ public class MagazineService {
         magazineRepository.delete(findMagazine);
     }
 
+    @Transactional
+    public void deletePage(Long pageId) {
+        magazinePageRepository.deleteById(pageId);
+    }
+
 }

@@ -90,17 +90,33 @@ public class MagazineController {
     @DeleteMapping("/magazine")
     @ApiOperation(value = "매거진 삭제하기", notes = "매거진을 삭제하는 api")
     @ApiResponses({
-            @ApiResponse(responseCode = "500", description = "5003-작성자불일치, 5004-선택된매거지없음"),
+            @ApiResponse(responseCode = "500", description = "5003-작성자불일치, 5004-선택된항목없음"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
     public ResponseEntity<BaseResponse> deleteMagazine(@RequestBody MagazineDeleteRequest request) {
         if(request.getMagazines().size() == 0) {
-            throw new BaseException(BaseExceptionStatus.FAIL_DELETE_MAGAZINE);
+            throw new BaseException(BaseExceptionStatus.NOT_SELECTED_ELEMENT);
         }
         String email = authService.getUserEmail();
 
         request.getMagazines().forEach(m->
                 magazineService.deleteMagazine(m, email));
+
+        return ResponseEntity.ok(new BaseResponse(SUCCESS));
+    }
+
+    @DeleteMapping("/magazine/page")
+    @ApiOperation(value = "매거진 페이지 삭제하기", notes = "매거진의 페이지를 삭제하는 api")
+    @ApiResponses({
+            @ApiResponse(responseCode = "500", description = "5004-선택된항목없음"),
+            @ApiResponse(responseCode = "500", description = "서버 예외")
+    })
+    public ResponseEntity<BaseResponse> deleteMagazine(@RequestBody MagazinePageDeleteRequest request) {
+        if(request.getPages().size() == 0) {
+            throw new BaseException(BaseExceptionStatus.NOT_SELECTED_ELEMENT);
+        }
+        request.getPages().forEach(p->
+                magazineService.deletePage(p));
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }

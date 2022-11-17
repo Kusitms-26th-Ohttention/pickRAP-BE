@@ -40,7 +40,7 @@ public enum BaseExceptionStatus {
     EXCEED_PAGE_SIZE(HttpStatus.BAD_REQUEST, 5001, "매거진 페이지는 최대 20장까지 제작 가능합니다."),
     EXCEED_TEXT_LENGTH(HttpStatus.BAD_REQUEST, 5002, "매거진 텍스트는 최대 1000자까지 입력 가능합니다."),
     NOT_MATCH_WRITER(HttpStatus.BAD_REQUEST, 5003, "작성자가 일치하지 않습니다."),
-    FAIL_DELETE_MAGAZINE(HttpStatus.BAD_REQUEST, 5004, "삭제할 매거진을 선택해주세요.");
+    NOT_SELECTED_ELEMENT(HttpStatus.BAD_REQUEST, 5004, "삭제할 항목을 선택해주세요.");
 
     // 분석&추천
 
