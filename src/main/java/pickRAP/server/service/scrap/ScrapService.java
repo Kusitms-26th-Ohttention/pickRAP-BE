@@ -44,12 +44,11 @@ public class ScrapService {
 
     private final S3Service s3Service;
 
-    public ScrapResponse findOne(ScrapSelectRequest scrapSelectRequest) {
-        if(Objects.isNull(scrapSelectRequest)) {
+    public ScrapResponse findOne(Long id) {
+        if(Objects.isNull(id)) {
             throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
         }
 
-        Long id = scrapSelectRequest.getId();
         Scrap scrap = scrapRepository.findById(id)
                 .orElseThrow(() -> new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP));
         List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrap.getId());
@@ -71,42 +70,42 @@ public class ScrapService {
         return scrapResponse;
     }
 
-    public Slice<ScrapResponse> filterPageScraps(String filter, ScrapFilterRequest scrapFilterRequest, String email, Pageable pageable) {
+    public Slice<ScrapResponse> filterPageScraps(String filter, Long categoryId, String searchKeyword, String orderKeyword, String email, Pageable pageable) {
         Member member = memberRepository.findByEmail(email).orElseThrow();
         Slice<ScrapResponse> scrapResponses;
         ScrapFilterCondition scrapFilterCondition;
 
         if(filter.equals("category")) {
-            if(Objects.isNull(scrapFilterRequest.getCategoryId())) {
+            if(Objects.isNull(categoryId)) {
                 throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
             }
 
             scrapFilterCondition = ScrapFilterCondition.builder()
-                    .categoryId(scrapFilterRequest.getCategoryId())
-                    .orderKeyword(scrapFilterRequest.getOrderKeyword())
+                    .categoryId(categoryId)
+                    .orderKeyword(orderKeyword)
                     .memberId(member.getId())
                     .build();
         } else if(filter.equals("text") || filter.equals("link")
                 || filter.equals("image") || filter.equals("video") || filter.equals("pdf")) {
             scrapFilterCondition = ScrapFilterCondition.builder()
                     .scrapType(ScrapType.valueOf(filter.toUpperCase(Locale.ROOT)))
-                    .orderKeyword(scrapFilterRequest.getOrderKeyword())
+                    .orderKeyword(orderKeyword)
                     .memberId(member.getId())
                     .build();
         } else if (filter.equals("keyword")) {
-            if(StringUtils.isEmpty(scrapFilterRequest.getSearchKeyword())) {
+            if(StringUtils.isEmpty(searchKeyword)) {
                 throw new BaseException(BaseExceptionStatus.DONT_EXIST_KEYWORD);
             }
 
             scrapFilterCondition = ScrapFilterCondition.builder()
-                    .searchKeyword(scrapFilterRequest.getSearchKeyword())
-                    .orderKeyword(scrapFilterRequest.getOrderKeyword())
+                    .searchKeyword(searchKeyword)
+                    .orderKeyword(orderKeyword)
                     .memberId(member.getId())
                     .build();
         } else if (filter.equals("all")) {
             scrapFilterCondition = ScrapFilterCondition.builder()
                     .memberId(member.getId())
-                    .orderKeyword(scrapFilterRequest.getOrderKeyword())
+                    .orderKeyword(orderKeyword)
                     .build();
         } else {
             throw new BaseException(BaseExceptionStatus.DONT_EXIST_PATH);
