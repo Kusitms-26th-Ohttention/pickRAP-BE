@@ -35,10 +35,13 @@ public class MagazineService {
     public void save(MagazineRequest request, String email) {
         Member member = memberRepository.findByEmail(email).orElseThrow();
 
+        Scrap cover = scrapRepository.findById(request.getMagazineCover().getScrapId()).orElseThrow();
+
         Magazine magazine = Magazine.builder()
                 .title(request.getTitle())
                 .openStatus(request.isOpenStatus())
                 .member(member)
+                .cover(cover.getFileUrl())
                 .build();
 
         saveMagazinePages(request.getPageList(), magazine);
@@ -50,16 +53,12 @@ public class MagazineService {
     public List<MagazineListResponse> findMagazines(String email) {
         List<Magazine> findMagazines = magazineRepositoryCustom.findMemberMagazines(email);
 
-        /*
-            스크랩 기능 구현 뒤 이미지 미리보기 구현 예정
-            if(m.getTemplate() == LINK)
-            m.getPages().get(0).getScrap().getContents() => url => URLPreview.get~..
-
-            if(m.getTemplate() == IMAGE || VIDEO)
-            m.getPages().get(0).getScrap().getContents()
-        */
         List<MagazineListResponse> collect = findMagazines.stream()
-                .map(m -> new MagazineListResponse(m.getId(), m.getTitle()))
+                .map(m -> MagazineListResponse.builder()
+                        .magazineId(m.getId())
+                        .magazineCover(m.getCover())
+                        .title(m.getTitle())
+                        .build())
                 .collect(Collectors.toList());
 
         return collect;

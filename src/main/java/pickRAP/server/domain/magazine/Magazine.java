@@ -26,6 +26,9 @@ public class Magazine extends BaseEntity {
     @Column(name = "open_status")
     private boolean openStatus;
 
+    @Column(name = "cover")
+    private String cover;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
@@ -34,11 +37,12 @@ public class Magazine extends BaseEntity {
     private List<MagazinePage> pages = new ArrayList<>();
 
     @Builder
-    public Magazine (String title, boolean openStatus, Member member) {
+    public Magazine (String title, boolean openStatus, Member member, String cover) {
         this.title = title;
         this.openStatus = openStatus;
         this.member = member;
         member.getMagazines().add(this);
+        this.cover = cover;
     }
 
     public void updateTitle(String title) {
