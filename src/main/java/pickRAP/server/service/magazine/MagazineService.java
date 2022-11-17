@@ -8,15 +8,15 @@ import pickRAP.server.common.BaseExceptionStatus;
 import pickRAP.server.controller.dto.magazine.*;
 import pickRAP.server.domain.magazine.Magazine;
 import pickRAP.server.domain.magazine.MagazinePage;
-import pickRAP.server.domain.magazine.MagazineTemplate;
 import pickRAP.server.domain.member.Member;
+import pickRAP.server.domain.scrap.Scrap;
 import pickRAP.server.repository.magazine.MagazinePageRepository;
 import pickRAP.server.repository.magazine.MagazineRepository;
 import pickRAP.server.repository.magazine.MagazineRepositoryCustom;
 import pickRAP.server.repository.member.MemberRepository;
+import pickRAP.server.repository.scrap.ScrapRepository;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,21 +27,19 @@ public class MagazineService {
 
     private final MemberRepository memberRepository;
     private final MagazineRepository magazineRepository;
-    private final MagazinePageRepository magazinePageRepository;
-
     private final MagazineRepositoryCustom magazineRepositoryCustom;
+    private final MagazinePageRepository magazinePageRepository;
+    private final ScrapRepository scrapRepository;
 
     @Transactional
-    public void save(MagazineRequest request, String email, String template) {
+    public void save(MagazineRequest request, String email) {
         Member member = memberRepository.findByEmail(email).orElseThrow();
 
         Magazine magazine = Magazine.builder()
                 .title(request.getTitle())
                 .openStatus(request.isOpenStatus())
-                .template(MagazineTemplate.valueOf(template.toUpperCase(Locale.ROOT)))
+                .member(member)
                 .build();
-
-        magazine.setMember(member);
 
         saveMagazinePages(request.getPageList(), magazine);
 
@@ -77,8 +75,7 @@ public class MagazineService {
                 .collect(Collectors.toList());
 
         MagazineResponse magazine = new MagazineResponse(
-                findMagazine.getId(), findMagazine.getTitle(),
-                findMagazine.getTemplate(), findMagazine.isOpenStatus(),
+                findMagazine.getId(), findMagazine.getTitle(), findMagazine.isOpenStatus(),
                 findMagazine.getCreateTime(), magazinePages);
 
         return magazine;
@@ -106,15 +103,14 @@ public class MagazineService {
                 throw new BaseException(BaseExceptionStatus.EXCEED_TEXT_LENGTH);
             }
 
+            Scrap scrap = scrapRepository.findById(p.getScrapId()).orElseThrow();
+
             MagazinePage page = MagazinePage.builder()
+                    .scrap(scrap)
                     .text(p.getText())
+                    .magazine(magazine)
                     .build();
 
-            // 스크랩 콘텐츠 가져와서 MagazinePage와 세팅
-            // Scrap scrap = scrapRepository.findById(page.getScrapId()).orElseThrow();
-            // page.setScrap(scrap);
-
-            page.setMagazine(magazine);
             magazinePageRepository.save(page);
         });
 

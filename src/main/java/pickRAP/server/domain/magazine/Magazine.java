@@ -26,9 +26,6 @@ public class Magazine extends BaseEntity {
     @Column(name = "open_status")
     private boolean openStatus;
 
-    @Enumerated(EnumType.STRING)
-    private MagazineTemplate template;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
@@ -37,13 +34,9 @@ public class Magazine extends BaseEntity {
     private List<MagazinePage> pages = new ArrayList<>();
 
     @Builder
-    public Magazine (String title, boolean openStatus, MagazineTemplate template) {
+    public Magazine (String title, boolean openStatus, Member member) {
         this.title = title;
         this.openStatus = openStatus;
-        this.template = template;
-    }
-
-    public void setMember(Member member) {
         this.member = member;
         member.getMagazines().add(this);
     }

@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pickRAP.server.common.BaseEntity;
 import pickRAP.server.domain.category.Category;
+import pickRAP.server.domain.magazine.MagazinePage;
 import pickRAP.server.domain.member.Member;
 
 import javax.persistence.*;
@@ -46,6 +47,9 @@ public class Scrap extends BaseEntity {
 
     @OneToMany(mappedBy = "scrap")
     private List<ScrapHashtag> scrapHashtags = new ArrayList<>();
+
+    @OneToOne(mappedBy = "scrap")
+    private MagazinePage page;
 
     @Builder
     public Scrap(String title, String content, String memo, String fileUrl, ScrapType scrapType) {

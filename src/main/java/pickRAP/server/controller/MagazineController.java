@@ -1,7 +1,6 @@
 package pickRAP.server.controller;
 
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
@@ -27,23 +26,19 @@ public class MagazineController {
     private final MagazineService magazineService;
     private final AuthService authService;
 
-    @PostMapping("/magazine/{template}")
+    @PostMapping("/magazine")
     @ApiOperation(value = "매거진 제작하기", notes = "매거진을 생성하는 api")
     @ApiResponses({
             @ApiResponse(responseCode = "500", description = "5001-매거진페이지수초과, 5002-매거진텍스트글자수초과"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse> saveMagazine(
-            @ApiParam(value = "template type : image, video, text, link, pdf")
-            @PathVariable(name="template") String template,
-            @RequestBody MagazineRequest request) {
-
+    public ResponseEntity<BaseResponse> saveMagazine(@RequestBody MagazineRequest request) {
         if(request.getPageList().size() > MAX_PAGE_SIZE) {
             throw new BaseException(BaseExceptionStatus.EXCEED_PAGE_SIZE);
         }
 
         String email = authService.getUserEmail();
-        magazineService.save(request, email, template);
+        magazineService.save(request, email);
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
