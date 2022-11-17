@@ -7,10 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pickRAP.server.common.BaseResponse;
-import pickRAP.server.controller.dto.category.CategoryDeleteRequest;
-import pickRAP.server.controller.dto.category.CategoryRequest;
-import pickRAP.server.controller.dto.category.CategoryResponse;
-import pickRAP.server.controller.dto.category.CategoryScrapResponse;
+import pickRAP.server.controller.dto.category.*;
 import pickRAP.server.service.auth.AuthService;
 import pickRAP.server.service.category.CategoryService;
 
@@ -74,5 +71,16 @@ public class CategoryController {
         }
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
+    }
+
+    @GetMapping("/contents")
+    @ApiOperation(value = "카테고리 내 콘텐츠 불러오기", notes = "로그인한 아이디의 모든 카테고리에 해당하는 스크랩 정보 불러오기")
+    @ApiResponses({
+            @ApiResponse(responseCode = "500", description = "서버 예외")
+    })
+    public ResponseEntity<BaseResponse<List<CategoryContentsResponse>>> getCategoryContents() {
+        List<CategoryContentsResponse> categoryContentResponses = categoryService.findMemberCategoriesAllScrap(authService.getUserEmail());
+
+        return ResponseEntity.ok(new BaseResponse(categoryContentResponses));
     }
 }
