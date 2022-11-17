@@ -75,7 +75,7 @@ public class MagazineController {
     })
     public ResponseEntity<BaseResponse> updateMagazine(
             @PathVariable(name="magazine_id") Long magazineId,
-            @RequestBody MagazineUpdateRequest request) {
+            @RequestBody MagazineRequest request) {
 
         if(request.getPageList().size() > MAX_PAGE_SIZE) {
             throw new BaseException(BaseExceptionStatus.EXCEED_PAGE_SIZE);

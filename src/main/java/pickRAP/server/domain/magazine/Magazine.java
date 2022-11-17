@@ -45,15 +45,19 @@ public class Magazine extends BaseEntity {
         this.cover = cover;
     }
 
-    public void updateTitle(String title) {
+    public void updateMagazine(String title, boolean openStatus, String cover) {
         if(!this.title.equals(title)) {
             this.title = title;
         }
+
+        if(this.openStatus != openStatus) {
+            this.openStatus = !this.openStatus;        }
+
+        if(!this.cover.equals(cover)) {
+            this.cover = cover;
+        }
     }
 
-    public void updateOpenStatus() {
-        this.openStatus = !this.openStatus;
-    }
 
     public boolean checkWriter(String email) {
         if(email.equals(this.member.getEmail())) {

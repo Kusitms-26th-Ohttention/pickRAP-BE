@@ -81,14 +81,16 @@ public class MagazineService {
     }
 
     @Transactional
-    public void updateMagazine(MagazineUpdateRequest request, Long magazineId, String email) {
+    public void updateMagazine(MagazineRequest request, Long magazineId, String email) {
         Magazine findMagazine = magazineRepository.findById(magazineId).orElseThrow();
 
         checkMatchWriter(findMagazine, email);
 
-        findMagazine.updateTitle(request.getTitle());
+        Scrap cover = scrapRepository.findById(request.getMagazineCover().getScrapId()).orElseThrow();
 
-        magazinePageRepository.deleteByMagazine(findMagazine);
+        findMagazine.updateMagazine(request.getTitle(), request.isOpenStatus(), cover.getFileUrl());
+
+        magazinePageRepository.deleteByMagazineId(findMagazine.getId());
 
         saveMagazinePages(request.getPageList(), findMagazine);
 

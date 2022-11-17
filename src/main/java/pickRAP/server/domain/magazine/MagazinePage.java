@@ -24,7 +24,7 @@ public class MagazinePage {
     @JoinColumn(name = "magazine_id")
     private Magazine magazine;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scrap_id")
     private Scrap scrap;
 

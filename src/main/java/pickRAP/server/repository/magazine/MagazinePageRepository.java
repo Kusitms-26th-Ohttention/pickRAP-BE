@@ -5,5 +5,5 @@ import pickRAP.server.domain.magazine.Magazine;
 import pickRAP.server.domain.magazine.MagazinePage;
 
 public interface MagazinePageRepository extends JpaRepository<MagazinePage, Long> {
-    void deleteByMagazine(Magazine magazine);
+    void deleteByMagazineId(Long magazine);
 }

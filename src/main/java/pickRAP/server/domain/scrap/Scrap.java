@@ -48,9 +48,6 @@ public class Scrap extends BaseEntity {
     @OneToMany(mappedBy = "scrap")
     private List<ScrapHashtag> scrapHashtags = new ArrayList<>();
 
-    @OneToOne(mappedBy = "scrap")
-    private MagazinePage page;
-
     @Builder
     public Scrap(String title, String content, String memo, String fileUrl, ScrapType scrapType) {
         this.title = title;
