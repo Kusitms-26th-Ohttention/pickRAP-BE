@@ -97,10 +97,10 @@ public class MagazineController {
         if(request.getMagazines().size() == 0) {
             throw new BaseException(BaseExceptionStatus.FAIL_DELETE_MAGAZINE);
         }
-
         String email = authService.getUserEmail();
 
-        magazineService.deleteMagazines(request.getMagazines(), email);
+        request.getMagazines().forEach(m->
+                magazineService.deleteMagazine(m, email));
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
