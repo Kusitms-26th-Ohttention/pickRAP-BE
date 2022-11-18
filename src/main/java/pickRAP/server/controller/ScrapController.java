@@ -102,7 +102,7 @@ public class ScrapController {
     @PutMapping
     @ApiOperation(value = "스크랩 수정", notes = "스크랩 수정")
     @ApiResponses({
-            @ApiResponse(responseCode = "400", description = "4009-스크랩이존재하지않음"),
+            @ApiResponse(responseCode = "400", description = "2006-필수값미입력(해시태그), 4007-제목글자수초과, 4009-스크랩이존재하지않음"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
     public ResponseEntity<BaseResponse> updateScrap(@RequestBody ScrapUpdateRequest scrapUpdateRequest) {
@@ -114,7 +114,7 @@ public class ScrapController {
     @DeleteMapping
     @ApiOperation(value = "스크랩 삭제", notes = "스크랩 삭제")
     @ApiResponses({
-            @ApiResponse(responseCode = "400", description = "2006-필수값미입력(해시태그), 4007-제목글자수초과"),
+            @ApiResponse(responseCode = "400", description = "4009-스크랩이존재하지않음"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
     public ResponseEntity<BaseResponse> deleteScrap(@RequestParam(name = "ids") List<String> ids) {
