@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 public class MagazineService {
 
     final static int MAX_TEXT_LENGTH = 400;
+    final static int MAX_TITLE_LENGTH = 30;
 
     private final MemberRepository memberRepository;
     private final MagazineRepository magazineRepository;
@@ -37,6 +38,10 @@ public class MagazineService {
 
     @Transactional
     public void save(MagazineRequest request, String email) {
+        if(request.getTitle().length() > MAX_TITLE_LENGTH) {
+            throw new BaseException(BaseExceptionStatus.EXCEED_TITLE_LENGTH);
+        }
+
         Member member = memberRepository.findByEmail(email).orElseThrow();
 
         Optional<Magazine> findMagazine = magazineRepository.findByTitleAndMember(request.getTitle(), member);
@@ -115,6 +120,9 @@ public class MagazineService {
 
     @Transactional
     public void updateMagazine(MagazineRequest request, Long magazineId, String email) {
+        if(request.getTitle().length() > MAX_TITLE_LENGTH) {
+            throw new BaseException(BaseExceptionStatus.EXCEED_TITLE_LENGTH);
+        }
         Magazine findMagazine = magazineRepository.findById(magazineId).orElseThrow();
 
         Member member = memberRepository.findByEmail(email).orElseThrow();
@@ -145,10 +153,13 @@ public class MagazineService {
                 throw new BaseException(BaseExceptionStatus.EXCEED_TEXT_LENGTH);
             }
 
-            Scrap scrap = scrapRepository.findById(p.getScrapId()).orElseThrow();
+            Optional<Scrap> scrap = scrapRepository.findById(p.getScrapId());
+            if(scrap.isPresent()) {
+                new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
+            }
 
             MagazinePage page = MagazinePage.builder()
-                    .scrap(scrap)
+                    .scrap(scrap.get())
                     .text(p.getText())
                     .magazine(magazine)
                     .build();
