@@ -37,7 +37,8 @@ public class MagazineController {
             throw new BaseException(BaseExceptionStatus.EXCEED_PAGE_SIZE);
         }
 
-        String email = authService.getUserEmail();
+        String email = "luck732002@naver.com";
+                //authService.getUserEmail();
         magazineService.save(request, email);
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));

@@ -17,6 +17,7 @@ import pickRAP.server.repository.member.MemberRepository;
 import pickRAP.server.repository.scrap.ScrapRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +35,12 @@ public class MagazineService {
     @Transactional
     public void save(MagazineRequest request, String email) {
         Member member = memberRepository.findByEmail(email).orElseThrow();
+
+        Optional<Magazine> findMagazine = magazineRepository.findByTitleAndMember(request.getTitle(), member);
+
+        if(findMagazine.isPresent()) {
+            throw new BaseException(BaseExceptionStatus.EXIST_MAGAZINE);
+        }
 
         Scrap cover = scrapRepository.findById(request.getCoverScrapId()).orElseThrow();
 
@@ -83,6 +90,14 @@ public class MagazineService {
     @Transactional
     public void updateMagazine(MagazineRequest request, Long magazineId, String email) {
         Magazine findMagazine = magazineRepository.findById(magazineId).orElseThrow();
+
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+
+        Optional<Magazine> overlapMagazine = magazineRepository.findByTitleAndMember(request.getTitle(), member);
+
+        if(overlapMagazine.isPresent()) {
+            throw new BaseException(BaseExceptionStatus.EXIST_MAGAZINE);
+        }
 
         checkMatchWriter(findMagazine, email);
 
