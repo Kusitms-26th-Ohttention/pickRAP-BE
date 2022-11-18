@@ -5,17 +5,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseExceptionStatus;
+import pickRAP.server.common.URLPreview;
 import pickRAP.server.controller.dto.magazine.*;
 import pickRAP.server.domain.magazine.Magazine;
 import pickRAP.server.domain.magazine.MagazinePage;
 import pickRAP.server.domain.member.Member;
 import pickRAP.server.domain.scrap.Scrap;
+import pickRAP.server.domain.scrap.ScrapType;
 import pickRAP.server.repository.magazine.MagazinePageRepository;
 import pickRAP.server.repository.magazine.MagazineRepository;
 import pickRAP.server.repository.magazine.MagazineRepositoryCustom;
 import pickRAP.server.repository.member.MemberRepository;
 import pickRAP.server.repository.scrap.ScrapRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -74,15 +77,38 @@ public class MagazineService {
     @Transactional(readOnly = true)
     public MagazineResponse findMagazine(Long magazineId) {
         Magazine findMagazine = magazineRepository.findById(magazineId).orElseThrow();
+
         List<MagazinePage> findMagazinePages = findMagazine.getPages();
+        List<MagazinePageResponse> magazinePages = new ArrayList<>();
 
-        List<MagazinePageResponse> magazinePages = findMagazinePages.stream()
-                .map(p -> new MagazinePageResponse(p.getId(), p.getText()))
-                .collect(Collectors.toList());
+        for(MagazinePage p : findMagazinePages) {
+            if(p.getScrap().getScrapType() == ScrapType.IMAGE
+                    || p.getScrap().getScrapType() == ScrapType.VIDEO
+                    || p.getScrap().getScrapType() == ScrapType.PDF) {
+                magazinePages.add(MagazinePageResponse.builder()
+                        .pageId(p.getId())
+                        .fileUrl(p.getScrap().getFileUrl())
+                        .text(p.getText()).build());
+            } else if (p.getScrap().getScrapType() == ScrapType.LINK) {
+                magazinePages.add(MagazinePageResponse.builder()
+                        .pageId(p.getId())
+                        .contents(URLPreview.getLinkPreviewInfo(p.getScrap().getContent()))
+                        .text(p.getText()).build());
+            } else {
+                magazinePages.add(MagazinePageResponse.builder()
+                        .pageId(p.getId())
+                        .contents(p.getScrap().getContent())
+                        .text(p.getText()).build());
+            }
+        }
 
-        MagazineResponse magazine = new MagazineResponse(
-                findMagazine.getId(), findMagazine.getTitle(), findMagazine.isOpenStatus(),
-                findMagazine.getCreateTime(), magazinePages);
+        MagazineResponse magazine = MagazineResponse.builder()
+                .magazineId(findMagazine.getId())
+                .title(findMagazine.getTitle())
+                .openStatus(findMagazine.isOpenStatus())
+                .createdDate(findMagazine.getCreateTime())
+                .pageList(magazinePages)
+                .build();
 
         return magazine;
     }

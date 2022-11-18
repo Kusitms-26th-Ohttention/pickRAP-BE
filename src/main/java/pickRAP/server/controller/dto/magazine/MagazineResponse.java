@@ -1,14 +1,13 @@
 package pickRAP.server.controller.dto.magazine;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-@AllArgsConstructor
 public class MagazineResponse {
     @JsonProperty(value="magazine_id")
     private Long magazineId;
@@ -21,4 +20,14 @@ public class MagazineResponse {
 
     @JsonProperty(value="page_list")
     List<MagazinePageResponse> pageList;
+
+    @Builder
+    public MagazineResponse(Long magazineId, String title, boolean openStatus,
+                            LocalDateTime createdDate, List<MagazinePageResponse> pageList) {
+        this.magazineId = magazineId;
+        this.title = title;
+        this.openStatus = openStatus;
+        this.createdDate = createdDate;
+        this.pageList = pageList;
+    }
 }
