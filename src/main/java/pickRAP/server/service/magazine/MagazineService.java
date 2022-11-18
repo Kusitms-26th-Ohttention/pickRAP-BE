@@ -35,7 +35,7 @@ public class MagazineService {
     public void save(MagazineRequest request, String email) {
         Member member = memberRepository.findByEmail(email).orElseThrow();
 
-        Scrap cover = scrapRepository.findById(request.getMagazineCover().getScrapId()).orElseThrow();
+        Scrap cover = scrapRepository.findById(request.getCoverScrapId()).orElseThrow();
 
         Magazine magazine = Magazine.builder()
                 .title(request.getTitle())
@@ -86,7 +86,7 @@ public class MagazineService {
 
         checkMatchWriter(findMagazine, email);
 
-        Scrap cover = scrapRepository.findById(request.getMagazineCover().getScrapId()).orElseThrow();
+        Scrap cover = scrapRepository.findById(request.getCoverScrapId()).orElseThrow();
 
         findMagazine.updateMagazine(request.getTitle(), request.isOpenStatus(), cover.getFileUrl());
 
