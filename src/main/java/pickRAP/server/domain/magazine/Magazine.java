@@ -26,8 +26,8 @@ public class Magazine extends BaseEntity {
     @Column(name = "open_status")
     private boolean openStatus;
 
-    @Enumerated(EnumType.STRING)
-    private MagazineTemplate template;
+    @Column(name = "cover")
+    private String cover;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
@@ -37,26 +37,27 @@ public class Magazine extends BaseEntity {
     private List<MagazinePage> pages = new ArrayList<>();
 
     @Builder
-    public Magazine (String title, boolean openStatus, MagazineTemplate template) {
+    public Magazine (String title, boolean openStatus, Member member, String cover) {
         this.title = title;
         this.openStatus = openStatus;
-        this.template = template;
-    }
-
-    public void setMember(Member member) {
         this.member = member;
         member.getMagazines().add(this);
+        this.cover = cover;
     }
 
-    public void updateTitle(String title) {
+    public void updateMagazine(String title, boolean openStatus, String cover) {
         if(!this.title.equals(title)) {
             this.title = title;
         }
+
+        if(this.openStatus != openStatus) {
+            this.openStatus = !this.openStatus;        }
+
+        if(!this.cover.equals(cover)) {
+            this.cover = cover;
+        }
     }
 
-    public void updateOpenStatus() {
-        this.openStatus = !this.openStatus;
-    }
 
     public boolean checkWriter(String email) {
         if(email.equals(this.member.getEmail())) {

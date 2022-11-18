@@ -12,6 +12,9 @@ public class MagazineRequest {
     @JsonProperty(value="open_status")
     private boolean openStatus;
 
+    @JsonProperty(value="cover_scrap_id")
+    private Long coverScrapId;
+
     @JsonProperty(value="page_list")
     private List<MagazinePageRequest> pageList;
 }

@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import pickRAP.server.domain.scrap.Scrap;
 
 import javax.persistence.*;
 
@@ -23,18 +24,15 @@ public class MagazinePage {
     @JoinColumn(name = "magazine_id")
     private Magazine magazine;
 
-    //    @OneToOne
-    //    private Scrap scrap;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "scrap_id")
+    private Scrap scrap;
 
     @Builder
-    public MagazinePage (String text) {
-        // this.scrap = scrap;
+    public MagazinePage (Scrap scrap, String text, Magazine magazine) {
+        this.scrap = scrap;
         this.text = text;
-    }
-
-    public void setMagazine(Magazine magazine) {
         this.magazine = magazine;
         magazine.getPages().add(this);
     }
-
 }

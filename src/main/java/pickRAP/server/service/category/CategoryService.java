@@ -7,12 +7,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseExceptionStatus;
+import pickRAP.server.common.URLPreview;
+import pickRAP.server.controller.dto.category.CategoryContentsResponse;
 import pickRAP.server.controller.dto.category.CategoryRequest;
 import pickRAP.server.controller.dto.category.CategoryResponse;
 import pickRAP.server.controller.dto.category.CategoryScrapResponse;
+import pickRAP.server.controller.dto.scrap.ScrapResponse;
 import pickRAP.server.domain.category.Category;
 import pickRAP.server.domain.member.Member;
 import pickRAP.server.domain.scrap.Scrap;
+import pickRAP.server.domain.scrap.ScrapType;
 import pickRAP.server.repository.category.CategoryRepository;
 import pickRAP.server.repository.member.MemberRepository;
 import pickRAP.server.repository.scrap.ScrapRepository;
@@ -20,6 +24,8 @@ import pickRAP.server.repository.scrap.ScrapRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static pickRAP.server.domain.scrap.QScrap.scrap;
 
 @Slf4j
 @Service
@@ -129,5 +135,58 @@ public class CategoryService {
         }
 
         categoryRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CategoryContentsResponse> findMemberCategoriesAllScrap(String email) {
+        Member findMember = memberRepository.findByEmail(email).orElseThrow();
+
+        List<Category> result = categoryRepository.findMemberCategories(findMember);
+
+        List<CategoryContentsResponse> categoryContentsResponse = new ArrayList<>();
+
+        for(Category category : result) {
+            List<CategoryContentsResponse.ScrapResponse> scrapResponse = new ArrayList<>();
+
+            if(!category.getScraps().isEmpty()) {
+                List<Scrap> scrapList = category.getScraps();
+                scrapList.forEach(s-> {
+                    if(s.getScrapType() == ScrapType.IMAGE
+                        || s.getScrapType() == ScrapType.VIDEO
+                        || s.getScrapType() == ScrapType.PDF) {
+
+                        scrapResponse.add(CategoryContentsResponse.ScrapResponse.builder()
+                                .scrapId(s.getId())
+                                .fileUrl(s.getFileUrl())
+                                .scrapType(s.getScrapType())
+                                .category(s.getCategory().getName())
+                                .build());
+                    } else if(s.getScrapType() == ScrapType.LINK) {
+                        scrapResponse.add(CategoryContentsResponse.ScrapResponse.builder()
+                                .scrapId(s.getId())
+                                .content(s.getContent())
+                                .urlPreview(URLPreview.getLinkPreviewInfo(s.getContent()))
+                                .scrapType(s.getScrapType())
+                                .category(s.getCategory().getName())
+                                .build());
+                    } else {
+                        scrapResponse.add(CategoryContentsResponse.ScrapResponse.builder()
+                                .scrapId(s.getId())
+                                .content(s.getContent())
+                                .scrapType(s.getScrapType())
+                                .category(s.getCategory().getName())
+                                .build());
+                    }
+                });
+            }
+            categoryContentsResponse.add(
+                    CategoryContentsResponse.builder()
+                            .categoryId(category.getId())
+                            .name(category.getName())
+                            .scrapResponseList(scrapResponse)
+                            .build());
+        }
+
+        return categoryContentsResponse;
     }
 }
