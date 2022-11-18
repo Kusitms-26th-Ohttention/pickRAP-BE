@@ -50,7 +50,7 @@ public class AuthService {
                 .email(memberSignUpRequest.getEmail())
                 .name(memberSignUpRequest.getName())
                 .password(passwordEncoder.encode(memberSignUpRequest.getPassword()))
-                .profileImageUrl("user_default_profile.png")
+                .profileImageUrl(DefaultImageEnv.DEFAULT_IMAGE_URL)
                 .socialType(SocialType.NONE)
                 .build();
         memberRepository.save(member);
