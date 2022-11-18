@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pickRAP.server.common.BaseEntity;
 import pickRAP.server.domain.category.Category;
+import pickRAP.server.domain.magazine.MagazinePage;
 import pickRAP.server.domain.member.Member;
 
 import javax.persistence.*;

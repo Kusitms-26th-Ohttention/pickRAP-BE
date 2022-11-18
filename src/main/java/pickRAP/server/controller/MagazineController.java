@@ -1,7 +1,6 @@
 package pickRAP.server.controller;
 
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
@@ -27,23 +26,21 @@ public class MagazineController {
     private final MagazineService magazineService;
     private final AuthService authService;
 
-    @PostMapping("/magazine/{template}")
+    @PostMapping("/magazine")
     @ApiOperation(value = "매거진 제작하기", notes = "매거진을 생성하는 api")
     @ApiResponses({
-            @ApiResponse(responseCode = "500", description = "5001-매거진페이지수초과, 5002-매거진텍스트글자수초과"),
+            @ApiResponse(responseCode = "400", description = "4009-존재하지않는스크랩"),
+            @ApiResponse(responseCode = "500", description = "5001-매거진페이지수초과, 5002-매거진텍스트글자수초과," +
+                    " 5005-존재하는매거진제목, 5006-매거진제목글자수초과"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse> saveMagazine(
-            @ApiParam(value = "template type : image, video, text, link, pdf")
-            @PathVariable(name="template") String template,
-            @RequestBody MagazineRequest request) {
-
+    public ResponseEntity<BaseResponse> saveMagazine(@RequestBody MagazineRequest request) {
         if(request.getPageList().size() > MAX_PAGE_SIZE) {
             throw new BaseException(BaseExceptionStatus.EXCEED_PAGE_SIZE);
         }
 
         String email = authService.getUserEmail();
-        magazineService.save(request, email, template);
+        magazineService.save(request, email);
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
@@ -75,12 +72,14 @@ public class MagazineController {
     @PutMapping("/magazine/{magazine_id}")
     @ApiOperation(value = "매거진 내용 수정하기", notes = "매거진 내용을 수정하는 api")
     @ApiResponses({
-            @ApiResponse(responseCode = "500", description = "5001-매거진페이지수초과, 5002-매거진텍스트글자수초과"),
+            @ApiResponse(responseCode = "400", description = "4009-존재하지않는스크랩"),
+            @ApiResponse(responseCode = "500", description = "5001-매거진페이지수초과, 5002-매거진텍스트글자수초과," +
+                    " 5005-존재하는매거진제목, 5006-매거진제목글자수초과"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
     public ResponseEntity<BaseResponse> updateMagazine(
             @PathVariable(name="magazine_id") Long magazineId,
-            @RequestBody MagazineUpdateRequest request) {
+            @RequestBody MagazineRequest request) {
 
         if(request.getPageList().size() > MAX_PAGE_SIZE) {
             throw new BaseException(BaseExceptionStatus.EXCEED_PAGE_SIZE);
@@ -92,34 +91,36 @@ public class MagazineController {
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
 
-    @PutMapping("/magazine/{magazine_id}/open-status")
-    @ApiOperation(value = "매거진 공개여부 수정하기", notes = "매거진의 공개 여부를 수정하는 api")
+    @DeleteMapping("/magazine")
+    @ApiOperation(value = "매거진 삭제하기", notes = "매거진을 삭제하는 api")
     @ApiResponses({
-            @ApiResponse(responseCode = "500", description = "5003-작성자불일치"),
+            @ApiResponse(responseCode = "500", description = "5003-작성자불일치, 5004-선택된항목없음"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
-            })
-    public ResponseEntity<BaseResponse> updateOpenStatus(@PathVariable(name="magazine_id") Long magazineId) {
+    })
+    public ResponseEntity<BaseResponse> deleteMagazine(@RequestParam List<String> ids) {
+        if(ids.size() == 0) {
+            throw new BaseException(BaseExceptionStatus.NOT_SELECTED_ELEMENT);
+        }
         String email = authService.getUserEmail();
 
-        magazineService.updateOpenStatus(magazineId, email);
+        ids.forEach(id->
+                magazineService.deleteMagazine(Long.parseLong(id), email));
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
 
-    @DeleteMapping("/magazine")
-    @ApiOperation(value = "매거진 삭제하기", notes = "매거진을 삭제하는 api")
+    @DeleteMapping("/magazine/page")
+    @ApiOperation(value = "매거진 페이지 삭제하기", notes = "매거진의 페이지를 삭제하는 api")
     @ApiResponses({
-            @ApiResponse(responseCode = "500", description = "5003-작성자불일치, 5004-선택된매거지없음"),
+            @ApiResponse(responseCode = "500", description = "5004-선택된항목없음"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse> deleteMagazine(@RequestBody MagazineDeleteRequest request) {
-        if(request.getMagazines().size() == 0) {
-            throw new BaseException(BaseExceptionStatus.FAIL_DELETE_MAGAZINE);
+    public ResponseEntity<BaseResponse> deleteMagazinePage(@RequestParam List<String> ids) {
+        if(ids.size() == 0) {
+            throw new BaseException(BaseExceptionStatus.NOT_SELECTED_ELEMENT);
         }
-
-        String email = authService.getUserEmail();
-
-        magazineService.deleteMagazines(request.getMagazines(), email);
+        ids.forEach(id->
+                magazineService.deletePage(Long.parseLong(id)));
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }

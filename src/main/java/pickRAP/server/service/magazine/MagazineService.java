@@ -5,18 +5,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseExceptionStatus;
+import pickRAP.server.common.URLPreview;
 import pickRAP.server.controller.dto.magazine.*;
 import pickRAP.server.domain.magazine.Magazine;
 import pickRAP.server.domain.magazine.MagazinePage;
-import pickRAP.server.domain.magazine.MagazineTemplate;
 import pickRAP.server.domain.member.Member;
+import pickRAP.server.domain.scrap.Scrap;
+import pickRAP.server.domain.scrap.ScrapType;
 import pickRAP.server.repository.magazine.MagazinePageRepository;
 import pickRAP.server.repository.magazine.MagazineRepository;
 import pickRAP.server.repository.magazine.MagazineRepositoryCustom;
 import pickRAP.server.repository.member.MemberRepository;
+import pickRAP.server.repository.scrap.ScrapRepository;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,24 +28,36 @@ import java.util.stream.Collectors;
 public class MagazineService {
 
     final static int MAX_TEXT_LENGTH = 400;
+    final static int MAX_TITLE_LENGTH = 30;
 
     private final MemberRepository memberRepository;
     private final MagazineRepository magazineRepository;
-    private final MagazinePageRepository magazinePageRepository;
-
     private final MagazineRepositoryCustom magazineRepositoryCustom;
+    private final MagazinePageRepository magazinePageRepository;
+    private final ScrapRepository scrapRepository;
 
     @Transactional
-    public void save(MagazineRequest request, String email, String template) {
+    public void save(MagazineRequest request, String email) {
+        if(request.getTitle().length() > MAX_TITLE_LENGTH) {
+            throw new BaseException(BaseExceptionStatus.EXCEED_TITLE_LENGTH);
+        }
+
         Member member = memberRepository.findByEmail(email).orElseThrow();
+
+        Optional<Magazine> findMagazine = magazineRepository.findByTitleAndMember(request.getTitle(), member);
+
+        if(findMagazine.isPresent()) {
+            throw new BaseException(BaseExceptionStatus.EXIST_MAGAZINE);
+        }
+
+        Scrap cover = scrapRepository.findById(request.getCoverScrapId()).orElseThrow();
 
         Magazine magazine = Magazine.builder()
                 .title(request.getTitle())
                 .openStatus(request.isOpenStatus())
-                .template(MagazineTemplate.valueOf(template.toUpperCase(Locale.ROOT)))
+                .member(member)
+                .cover(cover.getFileUrl())
                 .build();
-
-        magazine.setMember(member);
 
         saveMagazinePages(request.getPageList(), magazine);
 
@@ -52,16 +68,12 @@ public class MagazineService {
     public List<MagazineListResponse> findMagazines(String email) {
         List<Magazine> findMagazines = magazineRepositoryCustom.findMemberMagazines(email);
 
-        /*
-            스크랩 기능 구현 뒤 이미지 미리보기 구현 예정
-            if(m.getTemplate() == LINK)
-            m.getPages().get(0).getScrap().getContents() => url => URLPreview.get~..
-
-            if(m.getTemplate() == IMAGE || VIDEO)
-            m.getPages().get(0).getScrap().getContents()
-        */
         List<MagazineListResponse> collect = findMagazines.stream()
-                .map(m -> new MagazineListResponse(m.getId(), m.getTitle()))
+                .map(m -> MagazineListResponse.builder()
+                        .magazineId(m.getId())
+                        .magazineCover(m.getCover())
+                        .title(m.getTitle())
+                        .build())
                 .collect(Collectors.toList());
 
         return collect;
@@ -70,29 +82,64 @@ public class MagazineService {
     @Transactional(readOnly = true)
     public MagazineResponse findMagazine(Long magazineId) {
         Magazine findMagazine = magazineRepository.findById(magazineId).orElseThrow();
+
         List<MagazinePage> findMagazinePages = findMagazine.getPages();
+        List<MagazinePageResponse> magazinePages = new ArrayList<>();
 
-        List<MagazinePageResponse> magazinePages = findMagazinePages.stream()
-                .map(p -> new MagazinePageResponse(p.getId(), p.getText()))
-                .collect(Collectors.toList());
+        for(MagazinePage p : findMagazinePages) {
+            if(p.getScrap().getScrapType() == ScrapType.IMAGE
+                    || p.getScrap().getScrapType() == ScrapType.VIDEO
+                    || p.getScrap().getScrapType() == ScrapType.PDF) {
+                magazinePages.add(MagazinePageResponse.builder()
+                        .pageId(p.getId())
+                        .fileUrl(p.getScrap().getFileUrl())
+                        .text(p.getText()).build());
+            } else if (p.getScrap().getScrapType() == ScrapType.LINK) {
+                magazinePages.add(MagazinePageResponse.builder()
+                        .pageId(p.getId())
+                        .contents(URLPreview.getLinkPreviewInfo(p.getScrap().getContent()))
+                        .text(p.getText()).build());
+            } else {
+                magazinePages.add(MagazinePageResponse.builder()
+                        .pageId(p.getId())
+                        .contents(p.getScrap().getContent())
+                        .text(p.getText()).build());
+            }
+        }
 
-        MagazineResponse magazine = new MagazineResponse(
-                findMagazine.getId(), findMagazine.getTitle(),
-                findMagazine.getTemplate(), findMagazine.isOpenStatus(),
-                findMagazine.getCreateTime(), magazinePages);
+        MagazineResponse magazine = MagazineResponse.builder()
+                .magazineId(findMagazine.getId())
+                .title(findMagazine.getTitle())
+                .openStatus(findMagazine.isOpenStatus())
+                .createdDate(findMagazine.getCreateTime())
+                .pageList(magazinePages)
+                .build();
 
         return magazine;
     }
 
     @Transactional
-    public void updateMagazine(MagazineUpdateRequest request, Long magazineId, String email) {
+    public void updateMagazine(MagazineRequest request, Long magazineId, String email) {
+        if(request.getTitle().length() > MAX_TITLE_LENGTH) {
+            throw new BaseException(BaseExceptionStatus.EXCEED_TITLE_LENGTH);
+        }
         Magazine findMagazine = magazineRepository.findById(magazineId).orElseThrow();
+
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+
+        Optional<Magazine> overlapMagazine = magazineRepository.findByTitleAndMember(request.getTitle(), member);
+
+        if(overlapMagazine.isPresent()) {
+            throw new BaseException(BaseExceptionStatus.EXIST_MAGAZINE);
+        }
 
         checkMatchWriter(findMagazine, email);
 
-        findMagazine.updateTitle(request.getTitle());
+        Scrap cover = scrapRepository.findById(request.getCoverScrapId()).orElseThrow();
 
-        magazinePageRepository.deleteByMagazine(findMagazine);
+        findMagazine.updateMagazine(request.getTitle(), request.isOpenStatus(), cover.getFileUrl());
+
+        magazinePageRepository.deleteByMagazineId(findMagazine.getId());
 
         saveMagazinePages(request.getPageList(), findMagazine);
 
@@ -106,30 +153,21 @@ public class MagazineService {
                 throw new BaseException(BaseExceptionStatus.EXCEED_TEXT_LENGTH);
             }
 
+            Optional<Scrap> scrap = scrapRepository.findById(p.getScrapId());
+            if(scrap.isPresent()) {
+                new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
+            }
+
             MagazinePage page = MagazinePage.builder()
+                    .scrap(scrap.get())
                     .text(p.getText())
+                    .magazine(magazine)
                     .build();
 
-            // 스크랩 콘텐츠 가져와서 MagazinePage와 세팅
-            // Scrap scrap = scrapRepository.findById(page.getScrapId()).orElseThrow();
-            // page.setScrap(scrap);
-
-            page.setMagazine(magazine);
             magazinePageRepository.save(page);
         });
 
         magazineRepository.save(magazine);
-    }
-
-    @Transactional
-    public void updateOpenStatus(Long magazineId, String email) {
-        Magazine findMagazine = magazineRepository.findById(magazineId).orElseThrow();
-
-        checkMatchWriter(findMagazine, email);
-
-        findMagazine.updateOpenStatus();
-
-        return;
     }
 
     public void checkMatchWriter(Magazine magazine, String email) {
@@ -148,10 +186,8 @@ public class MagazineService {
     }
 
     @Transactional
-    public void deleteMagazines(List<Long> magazineIds, String email) {
-        magazineIds.forEach(m-> {
-            deleteMagazine(m, email);
-        });
+    public void deletePage(Long pageId) {
+        magazinePageRepository.deleteById(pageId);
     }
 
 }
