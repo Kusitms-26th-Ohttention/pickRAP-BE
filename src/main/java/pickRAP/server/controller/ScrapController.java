@@ -91,7 +91,7 @@ public class ScrapController {
                     "4001-지원하지않는파일, 4007-제목글자수초과, 4006-카테고리미존재, 4008-파일미존재(IMAGE, VIDEO, PDF), 4014-컨텐츠미입력(LINK, TEXT)"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse> insertScrap(@RequestPart(value = "scrap-request") ScrapRequest scrapRequest,
+    public ResponseEntity<BaseResponse> insertScrap(@RequestPart(value = "scrap_request") ScrapRequest scrapRequest,
                                                     @RequestPart(value = "file", required = false) MultipartFile multipartFile)
             throws IOException {
         scrapService.save(scrapRequest, multipartFile, authService.getUserEmail());

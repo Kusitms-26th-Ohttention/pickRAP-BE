@@ -233,14 +233,14 @@ public class ScrapService {
         scrapRepository.deleteById(id);
     }
 
-    private List<Hashtag> saveHashtags(List<HashtagRequest> hashtagRequests, Member member) {
+    private List<Hashtag> saveHashtags(List<String> hashtagRequests, Member member) {
         List<Hashtag> hashtags = new ArrayList<>();
 
-        for(HashtagRequest hashtagRequest : hashtagRequests) {
-            Optional<Hashtag> optionalHashtag = hashtagRepository.findMemberHashtag(hashtagRequest.getTag(), member);
+        for(String hashtagRequest : hashtagRequests) {
+            Optional<Hashtag> optionalHashtag = hashtagRepository.findMemberHashtag(hashtagRequest, member);
             if(optionalHashtag.isEmpty()) {
                 Hashtag hashtag = Hashtag.builder()
-                        .tag(hashtagRequest.getTag())
+                        .tag(hashtagRequest)
                         .build();
                 hashtag.setMember(member);
 

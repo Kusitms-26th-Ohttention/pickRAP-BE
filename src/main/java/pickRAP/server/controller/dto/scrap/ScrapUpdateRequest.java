@@ -13,5 +13,5 @@ public class ScrapUpdateRequest {
 
     private String memo;
 
-    private List<HashtagRequest> hashtags;
+    private List<String> hashtags;
 }
