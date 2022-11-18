@@ -37,8 +37,7 @@ public class MagazineController {
             throw new BaseException(BaseExceptionStatus.EXCEED_PAGE_SIZE);
         }
 
-        String email = "luck732002@naver.com";
-                //authService.getUserEmail();
+        String email = authService.getUserEmail();
         magazineService.save(request, email);
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
@@ -94,14 +93,14 @@ public class MagazineController {
             @ApiResponse(responseCode = "500", description = "5003-작성자불일치, 5004-선택된항목없음"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse> deleteMagazine(@RequestBody MagazineDeleteRequest request) {
-        if(request.getMagazines().size() == 0) {
+    public ResponseEntity<BaseResponse> deleteMagazine(@RequestParam List<String> ids) {
+        if(ids.size() == 0) {
             throw new BaseException(BaseExceptionStatus.NOT_SELECTED_ELEMENT);
         }
         String email = authService.getUserEmail();
 
-        request.getMagazines().forEach(m->
-                magazineService.deleteMagazine(m, email));
+        ids.forEach(id->
+                magazineService.deleteMagazine(Long.parseLong(id), email));
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
@@ -112,12 +111,12 @@ public class MagazineController {
             @ApiResponse(responseCode = "500", description = "5004-선택된항목없음"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse> deleteMagazine(@RequestBody MagazinePageDeleteRequest request) {
-        if(request.getPages().size() == 0) {
+    public ResponseEntity<BaseResponse> deleteMagazinePage(@RequestParam List<String> ids) {
+        if(ids.size() == 0) {
             throw new BaseException(BaseExceptionStatus.NOT_SELECTED_ELEMENT);
         }
-        request.getPages().forEach(p->
-                magazineService.deletePage(p));
+        ids.forEach(id->
+                magazineService.deletePage(Long.parseLong(id)));
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
