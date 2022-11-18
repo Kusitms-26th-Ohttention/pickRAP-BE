@@ -22,6 +22,7 @@ import pickRAP.server.domain.member.Member;
 import pickRAP.server.domain.member.SocialType;
 import pickRAP.server.repository.member.MemberRepository;
 import pickRAP.server.service.auth.AuthService;
+import pickRAP.server.service.auth.DefaultImageEnv;
 import pickRAP.server.service.category.CategoryService;
 
 @Slf4j
@@ -118,7 +119,7 @@ public class KakaoEnv implements ProviderEnv{
                     .email(Long.toString(profile.getId()) + profile.getKakao_account().getEmail())
                     .password(passwordEncoder.encode(profile.getKakao_account().getEmail()))
                     .name(profile.getKakao_account().getProfile().getNickname())
-                    .profileImageUrl("user_default_profile.png")
+                    .profileImageUrl(DefaultImageEnv.DEFAULT_IMAGE_URL)
                     .socialType(SocialType.KAKAO)
                     .build();
             memberRepository.save(member);

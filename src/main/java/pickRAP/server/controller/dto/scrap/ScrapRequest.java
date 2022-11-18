@@ -18,7 +18,7 @@ public class ScrapRequest {
     @JsonProperty("scrap_type")
     private ScrapType scrapType;
 
-    private List<HashtagRequest> hashtags;
+    private List<String> hashtags;
 
     @JsonProperty("category_id")
     private Long categoryId;
