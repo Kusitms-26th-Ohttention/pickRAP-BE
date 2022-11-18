@@ -4,6 +4,9 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pickRAP.server.common.BaseResponse;
@@ -11,8 +14,10 @@ import pickRAP.server.controller.dto.category.CategoryDeleteRequest;
 import pickRAP.server.controller.dto.category.CategoryRequest;
 import pickRAP.server.controller.dto.category.CategoryResponse;
 import pickRAP.server.controller.dto.category.CategoryScrapResponse;
+import pickRAP.server.controller.dto.scrap.ScrapResponse;
 import pickRAP.server.service.auth.AuthService;
 import pickRAP.server.service.category.CategoryService;
+import pickRAP.server.service.scrap.ScrapService;
 
 import java.util.List;
 
@@ -25,6 +30,8 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
+    private final ScrapService scrapService;
+
     private final AuthService authService;
 
     @GetMapping
@@ -36,6 +43,19 @@ public class CategoryController {
         List<CategoryScrapResponse> categoryScrapResponses = categoryService.findMemberCategoriesScrap(authService.getUserEmail());
 
         return ResponseEntity.ok(new BaseResponse(categoryScrapResponses));
+    }
+
+    @GetMapping("/{id}")
+    @ApiOperation(value = "스크랩 필터링(카테고리별)", notes = "query string에 order_keyword(desc는 최근생성, asc 오래된생성순)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "500", description = "서버 예외")
+    })
+    public ResponseEntity<BaseResponse<Slice<ScrapResponse>>> selectScraps(@PathVariable("id") String id,
+                                                                           @RequestParam(name = "order_keyword") String orderKeyword,
+                                                                           @PageableDefault(size = 10) Pageable pageable) {
+        Slice<ScrapResponse> scrapResponses = scrapService.filterPageScraps("category", Long.parseLong(id), null, orderKeyword, authService.getUserEmail(), pageable);
+
+        return ResponseEntity.ok(new BaseResponse(scrapResponses));
     }
 
     @PostMapping
@@ -68,9 +88,9 @@ public class CategoryController {
             @ApiResponse(responseCode = "400", description = "4006-카테고리가존재하지않음, 4010-기본카테고리삭제불가"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse> deleteCategory(@RequestBody CategoryDeleteRequest categoryDeleteRequest) {
-        for(Long id : categoryDeleteRequest.getId()) {
-            categoryService.delete(id, authService.getUserEmail());
+    public ResponseEntity<BaseResponse> deleteCategory(@RequestParam(name = "ids") List<String> ids) {
+        for(String id : ids) {
+            categoryService.delete(Long.parseLong(id), authService.getUserEmail());
         }
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
