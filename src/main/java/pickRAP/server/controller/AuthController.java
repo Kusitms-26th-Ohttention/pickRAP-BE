@@ -75,9 +75,7 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
     public ResponseEntity<BaseResponse> signIn(@Validated @RequestBody MemberSignInRequest memberSignInRequest, HttpServletResponse response) {
-        log.info("로그인시도");
         String accessToken = authService.signIn(memberSignInRequest);
-        log.info("토큰 : Bearer " + accessToken);
         response.setHeader("Authorization", "Bearer "+accessToken);
         return ResponseEntity.ok(new BaseResponse<>(SUCCESS));
     }
