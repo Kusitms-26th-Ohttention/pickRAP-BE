@@ -9,9 +9,12 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pickRAP.server.common.BaseException;
+import pickRAP.server.common.BaseExceptionStatus;
 import pickRAP.server.common.BaseResponse;
 import pickRAP.server.controller.dto.category.*;
 
+import pickRAP.server.controller.dto.scrap.ScrapPageResponse;
 import pickRAP.server.controller.dto.scrap.ScrapResponse;
 import pickRAP.server.service.auth.AuthService;
 import pickRAP.server.service.category.CategoryService;
@@ -27,8 +30,6 @@ import static pickRAP.server.common.BaseExceptionStatus.SUCCESS;
 public class CategoryController {
 
     private final CategoryService categoryService;
-
-    private final ScrapService scrapService;
 
     private final AuthService authService;
 
@@ -48,12 +49,27 @@ public class CategoryController {
     @ApiResponses({
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse<Slice<ScrapResponse>>> selectScraps(@PathVariable("id") String id,
+    public ResponseEntity<BaseResponse<ScrapPageResponse>> selectScraps(@PathVariable("id") String id,
                                                                            @RequestParam(name = "order_keyword") String orderKeyword,
                                                                            @PageableDefault(size = 10) Pageable pageable) {
-        Slice<ScrapResponse> scrapResponses = scrapService.filterPageScraps("category", Long.parseLong(id), null, orderKeyword, authService.getUserEmail(), pageable);
+        Slice<ScrapResponse> scrapResponses = categoryService.filterCategoryPageScraps(Long.parseLong(id), orderKeyword, authService.getUserEmail(), pageable);
+        Long nextScrapId = null;
+        if(scrapResponses.getContent().isEmpty()) {
+            throw new BaseException(BaseExceptionStatus.DONT_EXIST_PAGE);
+        }
+        if(orderKeyword.equals("desc")) {
+            nextScrapId = scrapResponses.getContent().get(scrapResponses.getContent().size() - 1).getId() - 1;
+        } else if(orderKeyword.equals("asc")) {
+            nextScrapId = scrapResponses.getContent().get(scrapResponses.getContent().size() - 1).getId() + 1;
+        }
 
-        return ResponseEntity.ok(new BaseResponse(scrapResponses));
+        ScrapPageResponse scrapPageResponse = ScrapPageResponse
+                .builder()
+                .nextScrapId(nextScrapId)
+                .scrapResponses(scrapResponses)
+                .build();
+
+        return ResponseEntity.ok(new BaseResponse(scrapPageResponse));
     }
 
     @PostMapping
