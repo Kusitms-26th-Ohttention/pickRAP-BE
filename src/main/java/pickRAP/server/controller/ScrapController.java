@@ -7,10 +7,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import pickRAP.server.common.BaseException;
+import pickRAP.server.common.BaseExceptionStatus;
 import pickRAP.server.common.BaseResponse;
 import pickRAP.server.controller.dto.scrap.*;
 import pickRAP.server.service.auth.AuthService;
@@ -47,12 +50,27 @@ public class ScrapController {
     @ApiResponses({
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse<Slice<ScrapResponse>>> searchScraps(@RequestParam(name = "search_keyword") String searchKeyword,
+    public ResponseEntity<BaseResponse<ScrapPageResponse>> searchScraps(@RequestParam(name = "search_keyword") String searchKeyword,
                                                                            @RequestParam(name = "order_keyword") String orderKeyword,
                                                                            @PageableDefault(size = 10) Pageable pageable) {
-        Slice<ScrapResponse> scrapResponses = scrapService.filterPageScraps("keyword", null, searchKeyword, orderKeyword, authService.getUserEmail(), pageable);
+        Slice<ScrapResponse> scrapResponses = scrapService.searchPageScraps(searchKeyword, orderKeyword, authService.getUserEmail(), pageable);
+        Long nextScrapId = null;
+        if(scrapResponses.getContent().isEmpty()) {
+            throw new BaseException(BaseExceptionStatus.DONT_EXIST_PAGE);
+        }
+        if(orderKeyword.equals("desc")) {
+            nextScrapId = scrapResponses.getContent().get(scrapResponses.getContent().size() - 1).getId() - 1;
+        } else if(orderKeyword.equals("asc")) {
+            nextScrapId = scrapResponses.getContent().get(scrapResponses.getContent().size() - 1).getId() + 1;
+        }
 
-        return ResponseEntity.ok(new BaseResponse(scrapResponses));
+        ScrapPageResponse scrapPageResponse = ScrapPageResponse
+                .builder()
+                .nextScrapId(nextScrapId)
+                .scrapResponses(scrapResponses)
+                .build();
+
+        return ResponseEntity.ok(new BaseResponse(scrapPageResponse));
     }
 
     @GetMapping("/type/{filter}")
@@ -60,13 +78,28 @@ public class ScrapController {
     @ApiResponses({
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse<Slice<ScrapResponse>>> filterScraps(@ApiParam(value = "filter : image, video, text, link, pdf")
+    public ResponseEntity<BaseResponse<ScrapPageResponse>> filterScraps(@ApiParam(value = "filter : image, video, text, link, pdf")
                                                                            @PathVariable("filter") String filter,
                                                                            @RequestParam(name = "order_keyword") String orderKeyword,
                                                                            @PageableDefault(size = 10) Pageable pageable) {
-        Slice<ScrapResponse> scrapResponses = scrapService.filterPageScraps(filter, null, null, orderKeyword, authService.getUserEmail(), pageable);
+        Slice<ScrapResponse> scrapResponses = scrapService.filterTypePageScraps(filter, orderKeyword, authService.getUserEmail(), pageable);
+        Long nextScrapId = null;
+        if(scrapResponses.getContent().isEmpty()) {
+            throw new BaseException(BaseExceptionStatus.DONT_EXIST_PAGE);
+        }
+        if(orderKeyword.equals("desc")) {
+            nextScrapId = scrapResponses.getContent().get(scrapResponses.getContent().size() - 1).getId() - 1;
+        } else if(orderKeyword.equals("asc")) {
+            nextScrapId = scrapResponses.getContent().get(scrapResponses.getContent().size() - 1).getId() + 1;
+        }
 
-        return ResponseEntity.ok(new BaseResponse(scrapResponses));
+        ScrapPageResponse scrapPageResponse = ScrapPageResponse
+                .builder()
+                .nextScrapId(nextScrapId)
+                .scrapResponses(scrapResponses)
+                .build();
+
+        return ResponseEntity.ok(new BaseResponse(scrapPageResponse));
     }
 
 //    @GetMapping("/{filter}")

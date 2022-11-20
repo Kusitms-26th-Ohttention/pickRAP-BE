@@ -2,6 +2,8 @@ package pickRAP.server.service.category;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -12,17 +14,21 @@ import pickRAP.server.controller.dto.category.CategoryContentsResponse;
 import pickRAP.server.controller.dto.category.CategoryRequest;
 import pickRAP.server.controller.dto.category.CategoryResponse;
 import pickRAP.server.controller.dto.category.CategoryScrapResponse;
+import pickRAP.server.controller.dto.scrap.ScrapFilterCondition;
 import pickRAP.server.controller.dto.scrap.ScrapResponse;
 import pickRAP.server.domain.category.Category;
 import pickRAP.server.domain.member.Member;
 import pickRAP.server.domain.scrap.Scrap;
+import pickRAP.server.domain.scrap.ScrapHashtag;
 import pickRAP.server.domain.scrap.ScrapType;
 import pickRAP.server.repository.category.CategoryRepository;
 import pickRAP.server.repository.member.MemberRepository;
+import pickRAP.server.repository.scrap.ScrapHashtagRepository;
 import pickRAP.server.repository.scrap.ScrapRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static pickRAP.server.domain.scrap.QScrap.scrap;
@@ -35,6 +41,8 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
 
     private final ScrapRepository scrapRepository;
+
+    private final ScrapHashtagRepository scrapHashtagRepository;
 
     private final MemberRepository memberRepository;
 
@@ -100,6 +108,46 @@ public class CategoryService {
         }
 
         return categoryScrapResponses;
+    }
+
+    public Slice<ScrapResponse> filterCategoryPageScraps(Long categoryId, String orderKeyword, String email, Pageable pageable) {
+        if(StringUtils.isEmpty(orderKeyword)) {
+            throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
+        }
+
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        Slice<ScrapResponse> scrapResponses = null;
+        ScrapFilterCondition scrapFilterCondition;
+
+        if(Objects.isNull(categoryId)) {
+            throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
+        }
+        scrapFilterCondition = ScrapFilterCondition.builder()
+                .categoryId(categoryId)
+                .orderKeyword(orderKeyword)
+                .memberId(member.getId())
+                .build();
+
+        if(pageable.getPageNumber() == 0) {
+            scrapResponses = scrapRepository.filterPageScraps(null, scrapFilterCondition, pageable);
+        } else {
+            if(scrapFilterCondition.getOrderKeyword().equals("asc")) {
+                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() - 1), scrapFilterCondition, pageable);
+            } else if(scrapFilterCondition.getOrderKeyword().equals("desc")) {
+                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() + 1), scrapFilterCondition, pageable);
+            }
+        }
+
+        //로직 고민
+        for(ScrapResponse scrapResponse : scrapResponses) {
+            List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrapResponse.getId());
+
+            for(ScrapHashtag scrapHashtag : scrapHashtags) {
+                scrapResponse.getHashtags().add(scrapHashtag.getHashtag().getTag());
+            }
+        }
+
+        return scrapResponses;
     }
 
     @Transactional

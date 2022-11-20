@@ -35,6 +35,7 @@ public enum BaseExceptionStatus {
     DONT_EXIST_KEYWORD(HttpStatus.BAD_REQUEST, 4012, "검색어를 입력해주세요"),
     DONT_EXIST_PATH(HttpStatus.BAD_REQUEST, 4013, "경로가 잘못되었습니다"),
     DONT_EXIST_CONTENT(HttpStatus.BAD_REQUEST, 4014, "컨텐츠를 입력해주세요"),
+    DONT_EXIST_PAGE(HttpStatus.BAD_REQUEST, 4015, "없는 페이지입니다."),
 
     // 메거진
     EXCEED_PAGE_SIZE(HttpStatus.BAD_REQUEST, 5001, "매거진 페이지는 최대 20장까지 제작 가능합니다."),
