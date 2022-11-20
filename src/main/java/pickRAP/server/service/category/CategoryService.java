@@ -140,6 +140,10 @@ public class CategoryService {
 
         //로직 고민
         for(ScrapResponse scrapResponse : scrapResponses) {
+            if(scrapResponse.getScrapType().equals(ScrapType.LINK)) {
+                scrapResponse.setUrlPreview(URLPreview.getLinkPreviewInfo(scrapResponse.getContent()));
+            }
+
             List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrapResponse.getId());
 
             for(ScrapHashtag scrapHashtag : scrapHashtags) {

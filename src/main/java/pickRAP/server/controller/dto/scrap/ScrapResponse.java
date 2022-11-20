@@ -28,6 +28,9 @@ public class ScrapResponse {
     @JsonProperty("file_url")
     private String fileUrl;
 
+    @JsonProperty("url_preview")
+    private String urlPreview;
+
     @JsonProperty("scrap_type")
     private ScrapType scrapType;
 
