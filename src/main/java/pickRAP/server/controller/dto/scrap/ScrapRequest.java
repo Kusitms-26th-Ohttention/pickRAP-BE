@@ -16,7 +16,7 @@ public class ScrapRequest {
     private String memo;
 
     @JsonProperty("scrap_type")
-    private ScrapType scrapType;
+    private String scrapType;
 
     private List<String> hashtags;
 
