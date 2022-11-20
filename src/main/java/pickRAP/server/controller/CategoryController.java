@@ -54,20 +54,20 @@ public class CategoryController {
                                                                            @PageableDefault(size = 10) Pageable pageable) {
         Slice<ScrapResponse> scrapResponses = categoryService.filterCategoryPageScraps(Long.parseLong(id), orderKeyword, authService.getUserEmail(), pageable);
         Long nextScrapId = null;
+        ScrapPageResponse scrapPageResponse = ScrapPageResponse
+                .builder()
+                .nextScrapId(nextScrapId)
+                .scrapResponses(scrapResponses)
+                .build();
         if(scrapResponses.getContent().isEmpty()) {
-            throw new BaseException(BaseExceptionStatus.DONT_EXIST_PAGE);
+            return ResponseEntity.ok(new BaseResponse(scrapPageResponse));
         }
         if(orderKeyword.equals("desc")) {
             nextScrapId = scrapResponses.getContent().get(scrapResponses.getContent().size() - 1).getId() - 1;
         } else if(orderKeyword.equals("asc")) {
             nextScrapId = scrapResponses.getContent().get(scrapResponses.getContent().size() - 1).getId() + 1;
         }
-
-        ScrapPageResponse scrapPageResponse = ScrapPageResponse
-                .builder()
-                .nextScrapId(nextScrapId)
-                .scrapResponses(scrapResponses)
-                .build();
+        scrapPageResponse.setNextScrapId(nextScrapId);
 
         return ResponseEntity.ok(new BaseResponse(scrapPageResponse));
     }
