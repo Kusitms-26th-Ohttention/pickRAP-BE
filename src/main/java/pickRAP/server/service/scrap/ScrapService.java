@@ -10,6 +10,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseExceptionStatus;
+import pickRAP.server.common.URLPreview;
 import pickRAP.server.controller.dto.scrap.*;
 import pickRAP.server.domain.category.Category;
 import pickRAP.server.domain.member.Member;
@@ -63,6 +64,9 @@ public class ScrapService {
                 .category(scrap.getCategory().getName())
                 .createTime(scrap.getCreateTime())
                 .build();
+        if(scrap.getScrapType().equals(ScrapType.LINK)) {
+            scrapResponse.setUrlPreview(URLPreview.getLinkPreviewInfo(scrap.getContent()));
+        }
         for(ScrapHashtag scrapHashtag : scrapHashtags) {
             scrapResponse.getHashtags().add(scrapHashtag.getHashtag().getTag());
         }
@@ -166,6 +170,10 @@ public class ScrapService {
 
         //로직 고민
         for(ScrapResponse scrapResponse : scrapResponses) {
+            if(scrapResponse.getScrapType().equals(ScrapType.LINK)) {
+                scrapResponse.setUrlPreview(URLPreview.getLinkPreviewInfo(scrapResponse.getContent()));
+            }
+
             List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrapResponse.getId());
 
             for(ScrapHashtag scrapHashtag : scrapHashtags) {
@@ -204,6 +212,10 @@ public class ScrapService {
 
         //로직 고민
         for(ScrapResponse scrapResponse : scrapResponses) {
+            if(scrapResponse.getScrapType().equals(ScrapType.LINK)) {
+                scrapResponse.setUrlPreview(URLPreview.getLinkPreviewInfo(scrapResponse.getContent()));
+            }
+
             List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrapResponse.getId());
 
             for(ScrapHashtag scrapHashtag : scrapHashtags) {
