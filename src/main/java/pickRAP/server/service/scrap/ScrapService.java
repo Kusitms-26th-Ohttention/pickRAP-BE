@@ -135,6 +135,85 @@ public class ScrapService {
         return scrapResponses;
     }
 
+    public Slice<ScrapResponse> searchPageScraps(String searchKeyword, String orderKeyword, String email, Pageable pageable) {
+        if(StringUtils.isEmpty(orderKeyword)) {
+            throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
+        }
+
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        Slice<ScrapResponse> scrapResponses = null;
+        ScrapFilterCondition scrapFilterCondition;
+
+        if(StringUtils.isEmpty(searchKeyword)) {
+            throw new BaseException(BaseExceptionStatus.DONT_EXIST_KEYWORD);
+        }
+
+        scrapFilterCondition = ScrapFilterCondition.builder()
+                .searchKeyword(searchKeyword)
+                .orderKeyword(orderKeyword)
+                .memberId(member.getId())
+                .build();
+
+        if(pageable.getPageNumber() == 0) {
+            scrapResponses = scrapRepository.filterPageScraps(null, scrapFilterCondition, pageable);
+        } else {
+            if(scrapFilterCondition.getOrderKeyword().equals("asc")) {
+                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() - 1), scrapFilterCondition, pageable);
+            } else if(scrapFilterCondition.getOrderKeyword().equals("desc")) {
+                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() + 1), scrapFilterCondition, pageable);
+            }
+        }
+
+        //로직 고민
+        for(ScrapResponse scrapResponse : scrapResponses) {
+            List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrapResponse.getId());
+
+            for(ScrapHashtag scrapHashtag : scrapHashtags) {
+                scrapResponse.getHashtags().add(scrapHashtag.getHashtag().getTag());
+            }
+        }
+
+        return scrapResponses;
+    }
+
+    public Slice<ScrapResponse> filterTypePageScraps(String filter, String orderKeyword, String email, Pageable pageable) {
+        if(StringUtils.isEmpty(orderKeyword)) {
+            throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
+        }
+
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        Slice<ScrapResponse> scrapResponses = null;
+        ScrapFilterCondition scrapFilterCondition;
+
+        //filter 예외처리?
+        scrapFilterCondition = ScrapFilterCondition.builder()
+                .scrapType(ScrapType.valueOf(filter.toUpperCase(Locale.ROOT)))
+                .orderKeyword(orderKeyword)
+                .memberId(member.getId())
+                .build();
+
+        if(pageable.getPageNumber() == 0) {
+            scrapResponses = scrapRepository.filterPageScraps(null, scrapFilterCondition, pageable);
+        } else {
+             if(scrapFilterCondition.getOrderKeyword().equals("asc")) {
+                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() - 1), scrapFilterCondition, pageable);
+            } else if(scrapFilterCondition.getOrderKeyword().equals("desc")) {
+                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() + 1), scrapFilterCondition, pageable);
+            }
+        }
+
+        //로직 고민
+        for(ScrapResponse scrapResponse : scrapResponses) {
+            List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrapResponse.getId());
+
+            for(ScrapHashtag scrapHashtag : scrapHashtags) {
+                scrapResponse.getHashtags().add(scrapHashtag.getHashtag().getTag());
+            }
+        }
+
+        return scrapResponses;
+    }
+
     @Transactional
     public void save(ScrapRequest scrapRequest, MultipartFile multipartFile, String email) throws IOException {
         if(scrapRequest.getHashtags().isEmpty()
@@ -159,17 +238,17 @@ public class ScrapService {
         List<Hashtag> hashtags = saveHashtags(scrapRequest.getHashtags(), member);
         Scrap scrap = null;
 
-        if(scrapRequest.getScrapType().equals(ScrapType.TEXT)
-                || scrapRequest.getScrapType().equals(ScrapType.LINK)) {
+        if(scrapRequest.getScrapType().equals("text")
+                || scrapRequest.getScrapType().equals("link")) {
 
             if(StringUtils.isEmpty(scrapRequest.getContent())) {
                 throw new BaseException(BaseExceptionStatus.DONT_EXIST_CONTENT);
             }
             scrap = createContentScrap(scrapRequest, member, category);
 
-        } else if(scrapRequest.getScrapType().equals(ScrapType.IMAGE)
-                || scrapRequest.getScrapType().equals(ScrapType.VIDEO)
-                || scrapRequest.getScrapType().equals(ScrapType.PDF)) {
+        } else if(scrapRequest.getScrapType().equals("image")
+                || scrapRequest.getScrapType().equals("video")
+                || scrapRequest.getScrapType().equals("pdf")) {
 
             if(multipartFile.isEmpty()) {
                 throw new BaseException(BaseExceptionStatus.DONT_EXIST_FILE);
@@ -260,7 +339,7 @@ public class ScrapService {
                 .title(scrapRequest.getTitle())
                 .content(scrapRequest.getContent())
                 .memo(scrapRequest.getMemo())
-                .scrapType(scrapRequest.getScrapType())
+                .scrapType(ScrapType.valueOf(scrapRequest.getScrapType().toUpperCase(Locale.ROOT)))
                 .build();
         scrap.setMember(member);
         scrap.setCategory(category);
@@ -273,7 +352,7 @@ public class ScrapService {
                 .title(scrapRequest.getTitle())
                 .memo(scrapRequest.getMemo())
                 .fileUrl(fileUrl)
-                .scrapType(scrapRequest.getScrapType())
+                .scrapType(ScrapType.valueOf(scrapRequest.getScrapType().toUpperCase(Locale.ROOT)))
                 .build();
         scrap.setMember(member);
         scrap.setCategory(category);
