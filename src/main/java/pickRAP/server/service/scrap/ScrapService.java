@@ -60,7 +60,7 @@ public class ScrapService {
                 .content(scrap.getContent())
                 .memo(scrap.getMemo())
                 .fileUrl(scrap.getFileUrl())
-                .scrapType(scrap.getScrapType())
+                .scrapType(scrap.getScrapType().toString().toLowerCase(Locale.ROOT))
                 .category(scrap.getCategory().getName())
                 .createTime(scrap.getCreateTime())
                 .build();
