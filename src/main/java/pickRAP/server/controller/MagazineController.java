@@ -50,7 +50,7 @@ public class MagazineController {
     @ApiResponses({
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse> getMagazineList() {
+    public ResponseEntity<BaseResponse<List<MagazineListResponse>>> getMagazineList() {
         String email = authService.getUserEmail();
 
         List<MagazineListResponse> response = magazineService.findMagazines(email);
@@ -63,7 +63,7 @@ public class MagazineController {
     @ApiResponses({
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse> getMagazine(@PathVariable(name="magazine_id") Long magazineId) {
+    public ResponseEntity<BaseResponse<MagazineResponse>> getMagazine(@PathVariable(name="magazine_id") Long magazineId) {
         MagazineResponse response = magazineService.findMagazine(magazineId);
 
         return ResponseEntity.ok(new BaseResponse(response));

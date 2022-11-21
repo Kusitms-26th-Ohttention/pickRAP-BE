@@ -9,14 +9,14 @@ import pickRAP.server.domain.magazine.MagazinePage;
 public class MagazineListResponse {
     @JsonProperty(value="magazine_id")
     private Long magazineId;
-    @JsonProperty(value="magazine_cover")
-    private String magazineCover;
+    @JsonProperty(value="cover_url")
+    private String coverUrl;
     private String title;
 
     @Builder
-    public MagazineListResponse(Long magazineId, String magazineCover, String title) {
+    public MagazineListResponse(Long magazineId, String coverUrl, String title) {
         this.magazineId = magazineId;
-        this.magazineCover = magazineCover;
+        this.coverUrl = coverUrl;
         this.title = title;
     }
 }
