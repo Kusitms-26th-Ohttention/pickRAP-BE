@@ -32,7 +32,7 @@ public class ScrapResponse {
     private String urlPreview;
 
     @JsonProperty("scrap_type")
-    private ScrapType scrapType;
+    private String scrapType;
 
     private String category;
 
@@ -43,7 +43,7 @@ public class ScrapResponse {
 
     @Builder
     @QueryProjection
-    public ScrapResponse(Long id, String title, String content, String memo, String fileUrl, ScrapType scrapType, String category, LocalDateTime createTime) {
+    public ScrapResponse(Long id, String title, String content, String memo, String fileUrl, String scrapType, String category, LocalDateTime createTime) {
         this.id = id;
         this.title = title;
         this.content = content;

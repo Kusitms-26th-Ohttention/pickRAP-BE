@@ -14,6 +14,7 @@ import pickRAP.server.controller.dto.scrap.ScrapResponse;
 import pickRAP.server.domain.scrap.ScrapType;
 
 import java.util.List;
+import java.util.Locale;
 
 import static pickRAP.server.domain.category.QCategory.category;
 import static pickRAP.server.domain.scrap.QScrap.*;
@@ -33,7 +34,7 @@ public class ScrapRepositoryImpl implements ScrapRepositoryCustom {
                         scrap.content,
                         scrap.memo,
                         scrap.fileUrl.as("fileUrl"),
-                        scrap.scrapType,
+                        scrap.scrapType.stringValue().toLowerCase(),
                         category.name,
                         scrap.createTime))
                 .distinct()
