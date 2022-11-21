@@ -71,7 +71,7 @@ public class MagazineService {
         List<MagazineListResponse> collect = findMagazines.stream()
                 .map(m -> MagazineListResponse.builder()
                         .magazineId(m.getId())
-                        .magazineCover(m.getCover())
+                        .coverUrl(m.getCover())
                         .title(m.getTitle())
                         .build())
                 .collect(Collectors.toList());
