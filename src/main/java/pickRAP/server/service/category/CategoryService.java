@@ -49,7 +49,7 @@ public class CategoryService {
     @Transactional
     public void initial(Member member) {
         Category category = Category.builder()
-                .name("미분류 카테고리")
+                .name("카테고리 미지정")
                 .build();
         category.setMember(member);
 
@@ -140,7 +140,7 @@ public class CategoryService {
 
         //로직 고민
         for(ScrapResponse scrapResponse : scrapResponses) {
-            if(scrapResponse.getScrapType().equals(ScrapType.LINK)) {
+            if(scrapResponse.getScrapType().equals("link")) {
                 scrapResponse.setUrlPreview(URLPreview.getLinkPreviewInfo(scrapResponse.getContent()));
             }
 
@@ -177,11 +177,11 @@ public class CategoryService {
         if(categoryRepository.findById(id).isEmpty()) {
             throw new BaseException(BaseExceptionStatus.DONT_EXIST_CATEGORY);
         }
-        if(categoryRepository.findById(id).orElseThrow().getName().equals("미분류 카테고리")) {
+        if(categoryRepository.findById(id).orElseThrow().getName().equals("카테고리 미지정")) {
             throw new BaseException(BaseExceptionStatus.CANT_DELETE_CATE);
         }
 
-        Category category = categoryRepository.findMemberCategory("미분류 카테고리", email).orElseThrow();
+        Category category = categoryRepository.findMemberCategory("카테고리 미지정", email).orElseThrow();
         for(Scrap scrap : categoryRepository.findById(id).orElseThrow().getScraps()) {
             scrap.setCategory(category);
         }

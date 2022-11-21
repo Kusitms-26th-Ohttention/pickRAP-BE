@@ -170,7 +170,7 @@ public class ScrapService {
 
         //로직 고민
         for(ScrapResponse scrapResponse : scrapResponses) {
-            if(scrapResponse.getScrapType().equals(ScrapType.LINK)) {
+            if(scrapResponse.getScrapType().equals("link")) {
                 scrapResponse.setUrlPreview(URLPreview.getLinkPreviewInfo(scrapResponse.getContent()));
             }
 
@@ -212,7 +212,7 @@ public class ScrapService {
 
         //로직 고민
         for(ScrapResponse scrapResponse : scrapResponses) {
-            if(scrapResponse.getScrapType().equals(ScrapType.LINK)) {
+            if(scrapResponse.getScrapType().equals("link")) {
                 scrapResponse.setUrlPreview(URLPreview.getLinkPreviewInfo(scrapResponse.getContent()));
             }
 
