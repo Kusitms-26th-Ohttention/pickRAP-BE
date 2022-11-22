@@ -13,6 +13,7 @@ public class MagazineResponse {
     private Long magazineId;
     private String title;
 
+    @JsonProperty(value="open_status")
     private boolean openStatus;
 
     @JsonProperty(value="created_date")
