@@ -40,7 +40,7 @@ public class ScrapController {
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
     public ResponseEntity<BaseResponse<ScrapResponse>> selectScrap(@PathVariable Long id) {
-        ScrapResponse scrapResponse = scrapService.findOne(id);
+        ScrapResponse scrapResponse = scrapService.findOne(id, authService.getUserEmail());
 
         return ResponseEntity.ok(new BaseResponse(scrapResponse));
     }
@@ -152,7 +152,7 @@ public class ScrapController {
     })
     public ResponseEntity<BaseResponse> deleteScrap(@RequestParam(name = "ids") List<String> ids) {
         for(String id : ids) {
-            scrapService.delete(Long.parseLong(id));
+            scrapService.delete(Long.parseLong(id), authService.getUserEmail());
         }
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));

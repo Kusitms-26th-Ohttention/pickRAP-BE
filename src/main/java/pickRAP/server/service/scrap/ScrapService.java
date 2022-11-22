@@ -45,13 +45,17 @@ public class ScrapService {
 
     private final S3Service s3Service;
 
-    public ScrapResponse findOne(Long id) {
+    public ScrapResponse findOne(Long id, String email) {
         if(Objects.isNull(id)) {
             throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
         }
 
+        Member member = memberRepository.findByEmail(email).orElseThrow();
         Scrap scrap = scrapRepository.findById(id)
                 .orElseThrow(() -> new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP));
+        if(!scrap.getMember().equals(member)) {
+            throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
+        }
         List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrap.getId());
 
         ScrapResponse scrapResponse = ScrapResponse.builder()
@@ -239,7 +243,8 @@ public class ScrapService {
         Member member = memberRepository.findByEmail(email).orElseThrow();
         Category category;
         if(Objects.isNull(scrapRequest.getCategoryId())) {
-            category = categoryRepository.findMemberCategory("미분류 카테고리", email).orElseThrow();
+            category = categoryRepository.findMemberCategory("카테고리 미지정", email)
+                    .orElseThrow(() -> new BaseException(BaseExceptionStatus.DONT_EXIST_CATEGORY));
         } else {
             category = categoryRepository.findById(scrapRequest.getCategoryId())
                     .orElseThrow(() -> new BaseException(BaseExceptionStatus.DONT_EXIST_CATEGORY));
@@ -289,8 +294,12 @@ public class ScrapService {
             throw new BaseException(BaseExceptionStatus.SCRAP_TITLE_LONG);
         }
 
+        Member member = memberRepository.findByEmail(email).orElseThrow();
         Scrap scrap = scrapRepository.findById(scrapUpdateRequest.getId())
                 .orElseThrow(() -> new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP));
+        if(!scrap.getMember().equals(member)) {
+            throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
+        }
 
         scrap.updateScrap(scrapUpdateRequest.getTitle(), scrapUpdateRequest.getMemo());
 
@@ -299,7 +308,6 @@ public class ScrapService {
             scrapHashtagRepository.deleteById(scrapHashtag.getId());
         }
 
-        Member member = memberRepository.findByEmail(email).orElseThrow();
         List<Hashtag> hashtags = saveHashtags(scrapUpdateRequest.getHashtags(), member);
         for(Hashtag hashtag : hashtags) {
             ScrapHashtag scrapHashtag = ScrapHashtag.builder()
@@ -311,8 +319,15 @@ public class ScrapService {
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(Long id, String email) {
         if(scrapRepository.findById(id).isEmpty()) {
+            throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
+        }
+
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        Scrap scrap = scrapRepository.findById(id)
+                .orElseThrow(() -> new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP));
+        if(!scrap.getMember().equals(member)) {
             throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
         }
 
