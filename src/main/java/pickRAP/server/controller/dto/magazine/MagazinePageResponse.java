@@ -8,6 +8,7 @@ import lombok.Data;
 public class MagazinePageResponse {
     @JsonProperty(value="page_id")
     private Long pageId;
+    @JsonProperty(value="file_url")
     private String fileUrl;
     private String contents;
     private String text;
