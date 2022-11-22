@@ -58,7 +58,10 @@ public class CategoryService {
 
     @Transactional
     public CategoryResponse save(CategoryRequest categoryRequest, String email) {
-        if(!StringUtils.isEmpty(categoryRequest.getName()) && categoryRequest.getName().length() > 20) {
+        if(StringUtils.isEmpty(categoryRequest.getName())) {
+            throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
+        }
+        if(categoryRequest.getName().length() > 20) {
             throw new BaseException(BaseExceptionStatus.CATEGORY_TITLE_LONG);
         }
         if(categoryRepository.findMemberCategory(categoryRequest.getName(), email).isPresent()) {
@@ -156,12 +159,22 @@ public class CategoryService {
 
     @Transactional
     public void update(CategoryRequest categoryRequest, Long id, String email) {
-        if(!StringUtils.isEmpty(categoryRequest.getName()) && categoryRequest.getName().length() > 20) {
+        if(StringUtils.isEmpty(categoryRequest.getName())) {
+            throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
+        }
+        if(categoryRequest.getName().length() > 20) {
             throw new BaseException(BaseExceptionStatus.CATEGORY_TITLE_LONG);
         }
 
-        Category findCategory = categoryRepository.findById(id).orElseThrow();
+        Category findCategory = categoryRepository.findById(id)
+                .orElseThrow(() -> new BaseException(BaseExceptionStatus.DONT_EXIST_CATEGORY));
 
+        if(!findCategory.getMember().getEmail().equals(email)) {
+            throw new BaseException(BaseExceptionStatus.DONT_EXIST_CATEGORY);
+        }
+        if(findCategory.getName().equals("카테고리 미지정")) {
+            throw new BaseException(BaseExceptionStatus.CANT_UPDATE_CATE);
+        }
         if(findCategory.getName().equals(categoryRequest.getName())) {
             throw new BaseException(BaseExceptionStatus.SAME_CATEGORY);
         }
@@ -174,16 +187,20 @@ public class CategoryService {
 
     @Transactional
     public void delete(Long id, String email) {
-        if(categoryRepository.findById(id).isEmpty()) {
+        Category findCategory = categoryRepository.findById(id)
+                .orElseThrow(() -> new BaseException(BaseExceptionStatus.DONT_EXIST_CATEGORY));
+
+        if(!findCategory.getMember().equals(memberRepository.findByEmail(email).orElseThrow())) {
             throw new BaseException(BaseExceptionStatus.DONT_EXIST_CATEGORY);
         }
-        if(categoryRepository.findById(id).orElseThrow().getName().equals("카테고리 미지정")) {
+        if(findCategory.getName().equals("카테고리 미지정")) {
             throw new BaseException(BaseExceptionStatus.CANT_DELETE_CATE);
         }
 
-        Category category = categoryRepository.findMemberCategory("카테고리 미지정", email).orElseThrow();
-        for(Scrap scrap : categoryRepository.findById(id).orElseThrow().getScraps()) {
-            scrap.setCategory(category);
+        Category initialCategory = categoryRepository.findMemberCategory("카테고리 미지정", email)
+                .orElseThrow(() -> new BaseException(BaseExceptionStatus.DONT_EXIST_CATEGORY));
+        for(Scrap scrap : findCategory.getScraps()) {
+            scrap.setCategory(initialCategory);
         }
 
         categoryRepository.deleteById(id);
