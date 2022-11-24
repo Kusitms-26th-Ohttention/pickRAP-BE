@@ -124,4 +124,16 @@ public class MagazineController {
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
+
+    @GetMapping("/magazine/check-exist-title/{title}")
+    @ApiOperation(value = "매거진 제목 중복 확인", notes = "매거진의 제목 중복 여부를 확인하는 api")
+    @ApiResponses({
+            @ApiResponse(responseCode = "500", description = "서버 예외")
+    })
+    public ResponseEntity<BaseResponse> checkTitle(@PathVariable("title") String title) {
+        String email = authService.getUserEmail();
+        boolean result = magazineService.isExistMagazineTitle(title, email);
+
+        return ResponseEntity.ok(new BaseResponse(result));
+    }
 }
