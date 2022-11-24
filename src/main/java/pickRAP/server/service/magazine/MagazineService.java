@@ -44,11 +44,6 @@ public class MagazineService {
 
         Member member = memberRepository.findByEmail(email).orElseThrow();
 
-        Optional<Magazine> findMagazine = magazineRepository.findByTitleAndMember(request.getTitle(), member);
-        if(findMagazine.isPresent()) {
-            throw new BaseException(BaseExceptionStatus.EXIST_MAGAZINE);
-        }
-
         Optional<Scrap> cover = scrapRepository.findById(request.getCoverScrapId());
         if(!cover.isPresent()) {
             throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
@@ -129,11 +124,6 @@ public class MagazineService {
 
         Member member = memberRepository.findByEmail(email).orElseThrow();
 
-        Optional<Magazine> overlapMagazine = magazineRepository.findByTitleAndMember(request.getTitle(), member);
-        if(overlapMagazine.isPresent()) {
-            throw new BaseException(BaseExceptionStatus.EXIST_MAGAZINE);
-        }
-
         checkMatchWriter(findMagazine, email);
 
         Optional<Scrap> cover = scrapRepository.findById(request.getCoverScrapId());
@@ -194,4 +184,14 @@ public class MagazineService {
         magazinePageRepository.deleteById(pageId);
     }
 
+    @Transactional(readOnly = true)
+    public boolean isExistMagazineTitle(String title, String email) {
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+
+        Optional<Magazine> findMagazine = magazineRepository.findByTitleAndMember(title, member);
+        if(findMagazine.isPresent()) {
+            return true;
+        }
+        return false;
+    }
 }
