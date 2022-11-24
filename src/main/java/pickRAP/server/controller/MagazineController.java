@@ -126,7 +126,7 @@ public class MagazineController {
     }
 
     @GetMapping("/magazine/check-exist-title/{title}")
-    @ApiOperation(value = "매거진 제목 중복 확인", notes = "매거진의 제목 중복 여부를 확인하는 api")
+    @ApiOperation(value = "매거진 제목 중복 확인", notes = "매거진의 제목 중복 여부를 확인하는 api, true - 이미 존재함/false - 존재하지 않음")
     @ApiResponses({
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
