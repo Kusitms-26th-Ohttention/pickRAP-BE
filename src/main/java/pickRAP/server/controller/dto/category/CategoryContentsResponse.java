@@ -9,6 +9,7 @@ import java.util.List;
 public class CategoryContentsResponse {
     @JsonProperty(value="category_id")
     private Long categoryId;
+    @JsonProperty(value="name")
     private String name;
 
     @JsonProperty(value="scrap_response_list")
@@ -25,6 +26,7 @@ public class CategoryContentsResponse {
     public static class ScrapResponse {
         @JsonProperty(value="scrap_id")
         private Long scrapId;
+        @JsonProperty(value="content")
         private String content;
         @JsonProperty(value="url_preview")
         private String urlPreview;
@@ -32,6 +34,7 @@ public class CategoryContentsResponse {
         private String fileUrl;
         @JsonProperty(value="scrap_type")
         private ScrapType scrapType;
+        @JsonProperty(value="category")
         private String category;
 
         @Builder
