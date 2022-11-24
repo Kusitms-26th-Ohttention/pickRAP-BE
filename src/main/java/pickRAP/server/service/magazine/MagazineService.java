@@ -45,18 +45,20 @@ public class MagazineService {
         Member member = memberRepository.findByEmail(email).orElseThrow();
 
         Optional<Magazine> findMagazine = magazineRepository.findByTitleAndMember(request.getTitle(), member);
-
         if(findMagazine.isPresent()) {
             throw new BaseException(BaseExceptionStatus.EXIST_MAGAZINE);
         }
 
-        Scrap cover = scrapRepository.findById(request.getCoverScrapId()).orElseThrow();
+        Optional<Scrap> cover = scrapRepository.findById(request.getCoverScrapId());
+        if(!cover.isPresent()) {
+            throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
+        }
 
         Magazine magazine = Magazine.builder()
                 .title(request.getTitle())
                 .openStatus(request.isOpenStatus())
                 .member(member)
-                .cover(cover.getFileUrl())
+                .cover(cover.get().getFileUrl())
                 .build();
 
         saveMagazinePages(request.getPageList(), magazine);
@@ -128,16 +130,18 @@ public class MagazineService {
         Member member = memberRepository.findByEmail(email).orElseThrow();
 
         Optional<Magazine> overlapMagazine = magazineRepository.findByTitleAndMember(request.getTitle(), member);
-
         if(overlapMagazine.isPresent()) {
             throw new BaseException(BaseExceptionStatus.EXIST_MAGAZINE);
         }
 
         checkMatchWriter(findMagazine, email);
 
-        Scrap cover = scrapRepository.findById(request.getCoverScrapId()).orElseThrow();
+        Optional<Scrap> cover = scrapRepository.findById(request.getCoverScrapId());
+        if(!cover.isPresent()) {
+            throw new BaseException(BaseExceptionStatus.EXIST_MAGAZINE);
+        }
 
-        findMagazine.updateMagazine(request.getTitle(), request.isOpenStatus(), cover.getFileUrl());
+        findMagazine.updateMagazine(request.getTitle(), request.isOpenStatus(), cover.get().getFileUrl());
 
         magazinePageRepository.deleteByMagazineId(findMagazine.getId());
 
@@ -154,8 +158,8 @@ public class MagazineService {
             }
 
             Optional<Scrap> scrap = scrapRepository.findById(p.getScrapId());
-            if(scrap.isPresent()) {
-                new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
+            if(!scrap.isPresent()) {
+                throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
             }
 
             MagazinePage page = MagazinePage.builder()

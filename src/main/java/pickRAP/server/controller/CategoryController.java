@@ -111,7 +111,7 @@ public class CategoryController {
     }
 
     @GetMapping("/contents")
-    @ApiOperation(value = "카테고리 내 콘텐츠 불러오기", notes = "로그인한 아이디의 모든 카테고리에 해당하는 스크랩 정보 불러오기")
+    @ApiOperation(value = "카테고리 내 콘텐츠 불러오기", notes = "로그인한 아이디의 모든 카테고리에 해당하는 스크랩 정보 불러오기. IMAGE/VIDEO/PDF : file_url, LINK : url_preview, content, TEXT : content")
     @ApiResponses({
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
