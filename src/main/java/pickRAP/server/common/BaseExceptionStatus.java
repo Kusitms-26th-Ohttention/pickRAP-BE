@@ -42,8 +42,8 @@ public enum BaseExceptionStatus {
     EXCEED_TEXT_LENGTH(HttpStatus.BAD_REQUEST, 5002, "매거진 텍스트는 최대 200자까지 입력 가능합니다."),
     NOT_MATCH_WRITER(HttpStatus.BAD_REQUEST, 5003, "작성자가 일치하지 않습니다."),
     NOT_SELECTED_ELEMENT(HttpStatus.BAD_REQUEST, 5004, "삭제할 항목을 선택해주세요."),
-    EXIST_MAGAZINE(HttpStatus.BAD_REQUEST, 5005, "이미 존재하는 매거진 이름입니다."),
-    EXCEED_TITLE_LENGTH(HttpStatus.BAD_REQUEST, 5006, "매거진 제목은 최대 15자까지 입력 가능합니다.");
+    EXCEED_TITLE_LENGTH(HttpStatus.BAD_REQUEST, 5005, "매거진 제목은 최대 15자까지 입력 가능합니다."),
+    DONT_MATCH_TYPE(HttpStatus.BAD_REQUEST, 5006, "매거진의 커버는 IMAGE 타입만 가능합니다.");
 
     // 분석&추천
 
