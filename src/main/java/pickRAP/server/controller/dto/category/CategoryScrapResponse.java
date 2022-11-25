@@ -12,12 +12,16 @@ public class CategoryScrapResponse {
 
     private String name;
 
+    @JsonProperty("scrap_type")
     private ScrapType scrapType;
 
     private String content;
 
     @JsonProperty("file_url")
     private String fileUrl;
+
+    @JsonProperty("url_preview")
+    private String urlPreview;
 
     @Builder
     public CategoryScrapResponse(Long id, String name, ScrapType scrapType, String content, String fileUrl) {
