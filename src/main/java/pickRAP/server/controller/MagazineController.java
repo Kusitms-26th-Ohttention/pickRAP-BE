@@ -31,7 +31,7 @@ public class MagazineController {
     @ApiResponses({
             @ApiResponse(responseCode = "400", description = "4009-존재하지않는스크랩"),
             @ApiResponse(responseCode = "500", description = "5001-매거진페이지수초과, 5002-매거진텍스트글자수초과," +
-                    " 5005-존재하는매거진제목, 5006-매거진제목글자수초과"),
+                    " 5005-매거진제목글자수초과, 5006-매거진커버타입에러"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
     public ResponseEntity<BaseResponse> saveMagazine(@RequestBody MagazineRequest request) {
@@ -74,7 +74,7 @@ public class MagazineController {
     @ApiResponses({
             @ApiResponse(responseCode = "400", description = "4009-존재하지않는스크랩"),
             @ApiResponse(responseCode = "500", description = "5001-매거진페이지수초과, 5002-매거진텍스트글자수초과," +
-                    " 5005-존재하는매거진제목, 5006-매거진제목글자수초과"),
+                    " 5005-매거진제목글자수초과, 5006-매거진커버타입에러"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
     public ResponseEntity<BaseResponse> updateMagazine(

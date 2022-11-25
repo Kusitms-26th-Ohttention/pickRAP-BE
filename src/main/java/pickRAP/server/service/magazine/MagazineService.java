@@ -48,6 +48,9 @@ public class MagazineService {
         if(!cover.isPresent()) {
             throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
         }
+        if(cover.get().getScrapType() != ScrapType.IMAGE) {
+            throw new BaseException(BaseExceptionStatus.DONT_MATCH_TYPE);
+        }
 
         Magazine magazine = Magazine.builder()
                 .title(request.getTitle())
@@ -128,7 +131,10 @@ public class MagazineService {
 
         Optional<Scrap> cover = scrapRepository.findById(request.getCoverScrapId());
         if(!cover.isPresent()) {
-            throw new BaseException(BaseExceptionStatus.EXIST_MAGAZINE);
+            throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
+        }
+        if(cover.get().getScrapType() != ScrapType.IMAGE) {
+            throw new BaseException(BaseExceptionStatus.DONT_MATCH_TYPE);
         }
 
         findMagazine.updateMagazine(request.getTitle(), request.isOpenStatus(), cover.get().getFileUrl());
