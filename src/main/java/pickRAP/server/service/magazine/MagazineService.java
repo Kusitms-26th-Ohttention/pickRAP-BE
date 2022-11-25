@@ -128,7 +128,7 @@ public class MagazineService {
 
         Optional<Scrap> cover = scrapRepository.findById(request.getCoverScrapId());
         if(!cover.isPresent()) {
-            throw new BaseException(BaseExceptionStatus.EXIST_MAGAZINE);
+            throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
         }
 
         findMagazine.updateMagazine(request.getTitle(), request.isOpenStatus(), cover.get().getFileUrl());
