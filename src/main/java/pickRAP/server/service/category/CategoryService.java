@@ -100,13 +100,19 @@ public class CategoryService {
             } else {
                 Scrap scrap = category.getScraps().get(category.getScraps().size() - 1);
 
-                categoryScrapResponses.add(CategoryScrapResponse.builder()
+                CategoryScrapResponse categoryScrapResponse = CategoryScrapResponse.builder()
                         .id(category.getId())
                         .name(category.getName())
                         .scrapType(scrap.getScrapType())
                         .content(scrap.getContent())
                         .fileUrl(scrap.getFileUrl())
-                        .build());
+                        .build();
+
+                if(scrap.getScrapType().equals(ScrapType.LINK)) {
+                    categoryScrapResponse.setUrlPreview(URLPreview.getLinkPreviewInfo(scrap.getContent()));
+                }
+
+                categoryScrapResponses.add(categoryScrapResponse);
             }
         }
 
