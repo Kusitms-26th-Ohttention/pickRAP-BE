@@ -28,6 +28,7 @@ import pickRAP.server.repository.scrap.ScrapRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -103,7 +104,7 @@ public class CategoryService {
                 CategoryScrapResponse categoryScrapResponse = CategoryScrapResponse.builder()
                         .id(category.getId())
                         .name(category.getName())
-                        .scrapType(scrap.getScrapType())
+                        .scrapType(scrap.getScrapType().toString().toLowerCase(Locale.ROOT))
                         .content(scrap.getContent())
                         .fileUrl(scrap.getFileUrl())
                         .build();

@@ -13,7 +13,7 @@ public class CategoryScrapResponse {
     private String name;
 
     @JsonProperty("scrap_type")
-    private ScrapType scrapType;
+    private String scrapType;
 
     private String content;
 
@@ -24,7 +24,7 @@ public class CategoryScrapResponse {
     private String urlPreview;
 
     @Builder
-    public CategoryScrapResponse(Long id, String name, ScrapType scrapType, String content, String fileUrl) {
+    public CategoryScrapResponse(Long id, String name, String scrapType, String content, String fileUrl) {
         this.id = id;
         this.name = name;
         this.scrapType = scrapType;
