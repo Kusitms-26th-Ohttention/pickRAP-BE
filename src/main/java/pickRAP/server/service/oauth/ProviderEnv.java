@@ -9,5 +9,5 @@ public interface ProviderEnv {
 
     OauthToken getOauthToken(RestTemplate rs, HttpHeaders httpHeaders, String code, String state);
 
-    String findProfile(RestTemplate rt, HttpHeaders headers, String token);
+    TokenDto findProfile(RestTemplate rt, HttpHeaders headers, String token);
 }

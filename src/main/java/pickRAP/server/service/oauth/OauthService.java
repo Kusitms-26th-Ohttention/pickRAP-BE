@@ -17,7 +17,7 @@ public class OauthService {
 
     private final NaverEnv naverEnv;
 
-    public String socialAuth(String provider, String code, String state){
+    public TokenDto socialAuth(String provider, String code, String state){
 
         ProviderEnv providerEnv = null;
 
