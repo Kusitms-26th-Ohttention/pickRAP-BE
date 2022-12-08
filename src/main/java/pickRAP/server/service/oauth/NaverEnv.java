@@ -1,8 +1,8 @@
 package pickRAP.server.service.oauth;
 
+import io.netty.util.CharsetUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.netty.util.CharsetUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -89,7 +89,7 @@ public class NaverEnv implements ProviderEnv{
     }
 
     @Override
-    public String findProfile(RestTemplate rt, HttpHeaders headers, String token) {
+    public TokenDto findProfile(RestTemplate rt, HttpHeaders headers, String token) {
         headers.add("Authorization", "Bearer " + token);
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
@@ -118,7 +118,7 @@ public class NaverEnv implements ProviderEnv{
     }
 
 
-    public String socialLogin(NaverProfile profile) {
+    public TokenDto socialLogin(NaverProfile profile) {
         if (memberRepository.findByEmail(profile.getResponse().getId() + profile.getResponse().getEmail()).isEmpty()){
             Member member = Member.builder()
                     .email(profile.getResponse().getId() + profile.getResponse().getEmail())

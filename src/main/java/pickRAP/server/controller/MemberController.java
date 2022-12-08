@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 import pickRAP.server.common.BaseResponse;
 import pickRAP.server.service.auth.AuthService;
 
+import javax.servlet.http.HttpServletResponse;
+
 import static pickRAP.server.common.BaseExceptionStatus.*;
 
 
@@ -27,8 +29,8 @@ public class MemberController {
     @ApiResponses({
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse> logout() {
-        authService.logout();
+    public ResponseEntity<BaseResponse> logout(HttpServletResponse response) {
+        authService.logout(response);
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
 

@@ -84,7 +84,7 @@ public class KakaoEnv implements ProviderEnv{
     }
 
     @Override
-    public String findProfile(RestTemplate rt, HttpHeaders headers, String token) {
+    public TokenDto findProfile(RestTemplate rt, HttpHeaders headers, String token) {
         headers.add("Authorization", "Bearer " + token);
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
@@ -113,7 +113,7 @@ public class KakaoEnv implements ProviderEnv{
     }
 
 
-    public String socialLogin(KakaoProfile profile) {
+    public TokenDto socialLogin(KakaoProfile profile) {
         if (memberRepository.findByEmail(Long.toString(profile.getId()) + profile.getKakao_account().getEmail()).isEmpty()) {
             Member member = Member.builder()
                     .email(Long.toString(profile.getId()) + profile.getKakao_account().getEmail())
