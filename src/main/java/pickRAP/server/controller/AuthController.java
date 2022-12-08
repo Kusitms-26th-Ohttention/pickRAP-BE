@@ -5,11 +5,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseResponse;
+import pickRAP.server.config.security.jwt.TokenDto;
 import pickRAP.server.controller.dto.auth.MemberSignInRequest;
 import pickRAP.server.controller.dto.auth.MemberSignUpRequest;
 import pickRAP.server.service.auth.AuthService;
@@ -75,9 +77,25 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
     public ResponseEntity<BaseResponse> signIn(@Validated @RequestBody MemberSignInRequest memberSignInRequest, HttpServletResponse response) {
-        String accessToken = authService.signIn(memberSignInRequest);
-        response.setHeader("Authorization", "Bearer "+accessToken);
+        TokenDto tokenDto = authService.signIn(memberSignInRequest);
+        setToken(response, tokenDto);
         return ResponseEntity.ok(new BaseResponse<>(SUCCESS));
+    }
+
+    public void setToken(HttpServletResponse response, TokenDto tokenDto) {
+        response.setHeader("Authorization", "Bearer "+tokenDto.getAccessToken());
+        response.setHeader("Set-Cookie", setRefreshToken(tokenDto.getRefreshToken()).toString());
+    }
+
+    public ResponseCookie setRefreshToken(String refreshToken) {
+        ResponseCookie cookie = ResponseCookie.from("RefreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .maxAge(60 * 60 * 24 * 7)  //7일
+                .sameSite("None")
+                .path("/")
+                .build();
+        return cookie;
     }
 
     /*
@@ -92,8 +110,8 @@ public class AuthController {
                                                     , @RequestParam("code") String code
                                                     , @RequestParam(value = "state", required = false) String state
                                                     , HttpServletResponse response ){
-        String accessToken = oauthService.socialAuth(provider, code, state);
-        response.setHeader("Authorization", "Bearer "+accessToken);
+        TokenDto tokenDto = oauthService.socialAuth(provider, code, state);
+        setToken(response, tokenDto);
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
 
@@ -104,12 +122,14 @@ public class AuthController {
     @PostMapping("/reissue")
     @ApiOperation(value = "재발급", notes = "토큰 재발급")
     @ApiResponses({
-            @ApiResponse(responseCode = "401", description = "2000-토큰만료"),
+            @ApiResponse(responseCode = "401", description = "2007-재발급실패"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse> refresh(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String newAccessToken = authService.reissue(request);
-        response.setHeader("Authorization", "Bearer "+newAccessToken);
+    public ResponseEntity<BaseResponse> refresh(HttpServletRequest request
+                                            , HttpServletResponse response
+                                            , @CookieValue(name = "RefreshToken", required = false) String refreshToken) throws IOException {
+        TokenDto tokenDto = authService.reissue(refreshToken, request);
+        setToken(response, tokenDto);
         return ResponseEntity.ok(new BaseResponse<>(SUCCESS));
     }
 }

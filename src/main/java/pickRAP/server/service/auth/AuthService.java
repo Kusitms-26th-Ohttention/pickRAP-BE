@@ -2,13 +2,13 @@ package pickRAP.server.service.auth;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import pickRAP.server.common.BaseException;
-import pickRAP.server.common.BaseExceptionStatus;
 import pickRAP.server.config.security.config.SecurityUtil;
 import pickRAP.server.config.security.jwt.TokenDto;
 import pickRAP.server.config.security.jwt.TokenProvider;
@@ -18,11 +18,10 @@ import pickRAP.server.domain.member.Member;
 import pickRAP.server.domain.member.SocialType;
 import pickRAP.server.repository.member.MemberRepository;
 import pickRAP.server.service.category.CategoryService;
-import pickRAP.server.util.RedisClient;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Optional;
 
 import static pickRAP.server.common.BaseExceptionStatus.*;
 
@@ -34,7 +33,6 @@ public class AuthService {
     private final MemberRepository memberRepository;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final TokenProvider tokenProvider;
-    private final RedisClient redisClient;
     private final PasswordEncoder passwordEncoder;
     private final CategoryService categoryService;
 
@@ -60,7 +58,7 @@ public class AuthService {
     /*
     로그인
      */
-    public String signIn(MemberSignInRequest memberSignInRequest) {
+    public TokenDto signIn(MemberSignInRequest memberSignInRequest) {
         return authenticationMember(memberSignInRequest.getEmail(), memberSignInRequest.getPassword());
     }
 
@@ -68,18 +66,15 @@ public class AuthService {
     /*
     재발급
      */
-    public String reissue(HttpServletRequest request) throws IOException {
+    public TokenDto reissue(String refreshToken, HttpServletRequest request) throws IOException {
+        // refreshToken 만료 시
+        if (refreshToken == null) {
+            throw new BaseException(EXPIRED_REFRESH);
+        }
+
         // 기존 accessToken 찾기
         String accessToken = tokenProvider.resolveToken(request);
         Authentication authentication = tokenProvider.getAuthentication(accessToken);
-
-        // redis의 refreshToken과의 검증
-        String refreshToken = Optional.ofNullable(redisClient.getValues(authentication.getName())).orElseThrow(
-                () -> new BaseException(UN_AUTHORIZED)
-        );
-        if(!tokenProvider.validateToken(refreshToken)){
-            throw new BaseException(UN_AUTHORIZED);
-        }
 
         // 토큰 발급
         return generateToken(authentication);
@@ -88,7 +83,7 @@ public class AuthService {
     /*
     사용자 검증
      */
-    public String authenticationMember(String principal, String credentials) {
+    public TokenDto authenticationMember(String principal, String credentials) {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                 principal, credentials
         );
@@ -99,17 +94,25 @@ public class AuthService {
     /*
     토큰 생성
      */
-    public String generateToken(Authentication authentication) {
-        TokenDto tokenDto = tokenProvider.generateTokenDto(authentication);
-        redisClient.setValues(authentication.getName(), tokenDto.getRefreshToken());
-        return tokenDto.getAccessToken();
+    public TokenDto generateToken(Authentication authentication) {
+        return tokenProvider.generateTokenDto(authentication);
     }
 
     /*
     로그아웃
      */
-    public void logout() {
-        redisClient.deleteValues(SecurityUtil.getCurrentMemberId());
+    public void logout(HttpServletResponse response) {
+
+        // 쿠키 삭제
+        ResponseCookie cookie = ResponseCookie.from("RefreshToken", null)
+                .maxAge(0)
+                .path("/")
+                .sameSite("None")
+                .secure(true)
+                .httpOnly(true)
+                .build();
+
+        response.setHeader("Set-Cookie", cookie.toString());
     }
 
     /*
