@@ -93,6 +93,7 @@ public class AuthController {
                 .secure(true)
                 .maxAge(60 * 60 * 24 * 7)  //7일
                 .sameSite("None")
+                .domain("pickrap.com")
                 .path("/")
                 .build();
         return cookie;
