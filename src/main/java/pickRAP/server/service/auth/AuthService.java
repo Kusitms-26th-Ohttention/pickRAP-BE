@@ -108,6 +108,7 @@ public class AuthService {
                 .maxAge(0)
                 .path("/")
                 .sameSite("None")
+                .domain("pickrap.com")
                 .secure(true)
                 .httpOnly(true)
                 .build();
