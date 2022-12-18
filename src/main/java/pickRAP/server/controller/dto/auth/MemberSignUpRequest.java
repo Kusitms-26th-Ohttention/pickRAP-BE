@@ -1,11 +1,13 @@
 package pickRAP.server.controller.dto.auth;
 
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import lombok.*;
 
 import javax.validation.constraints.NotEmpty;
 
 @Data
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class MemberSignUpRequest {
 
     @NotEmpty
