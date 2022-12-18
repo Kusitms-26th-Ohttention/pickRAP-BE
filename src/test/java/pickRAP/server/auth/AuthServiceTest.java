@@ -12,6 +12,7 @@ import pickRAP.server.config.security.jwt.TokenProvider;
 import pickRAP.server.controller.dto.auth.MemberSignInRequest;
 import pickRAP.server.controller.dto.auth.MemberSignUpRequest;
 import pickRAP.server.domain.member.Member;
+import pickRAP.server.repository.category.CategoryRepository;
 import pickRAP.server.repository.member.MemberRepository;
 import pickRAP.server.service.auth.AuthService;
 import pickRAP.server.service.oauth.OauthService;
@@ -25,6 +26,7 @@ import static pickRAP.server.common.BaseExceptionStatus.*;
 public class AuthServiceTest {
 
     @Autowired MemberRepository memberRepository;
+    @Autowired CategoryRepository categoryRepository;
     @Autowired AuthService authService;
     @Autowired OauthService oauthService;
     @Autowired TokenProvider tokenProvider;
@@ -64,6 +66,7 @@ public class AuthServiceTest {
         // then
         Member findMember = memberRepository.findByEmail(signUpReq.getEmail()).get();
         assertThat(findMember.getEmail()).isEqualTo(signUpReq.getEmail());
+        assertThat(categoryRepository.findMemberCategories(findMember).get(0).getName()).isEqualTo("카테고리 미지정");
     }
 
     @DisplayName("중복 검사 테스트")
