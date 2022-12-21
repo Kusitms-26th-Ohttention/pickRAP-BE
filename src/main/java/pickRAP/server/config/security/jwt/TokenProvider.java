@@ -68,13 +68,23 @@ public class TokenProvider {
                 .setExpiration(accessTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
-        String refreshToken = Jwts.builder()
+        String refreshToken = builder()
                 .setExpiration(new Date(now + REFRESH_TOKEN_EXPIRE_TIME))
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
 
 
         return TokenDto.builder().accessToken(accessToken).refreshToken(refreshToken).build();
+    }
+
+    public String createTestToken() {
+        Date accessTokenExpiresIn = new Date((new Date()).getTime() + ACCESS_TOKEN_EXPIRE_TIME);
+        return builder()
+                .setSubject("test")
+                .setExpiration(accessTokenExpiresIn)
+                .signWith(key, SignatureAlgorithm.HS512)
+                .claim(AUTHORITIES_KEY, "test")
+                .compact();
     }
 
 
