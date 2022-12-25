@@ -1,12 +1,15 @@
 package pickRAP.server.controller.dto.scrap;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import lombok.*;
 import pickRAP.server.domain.scrap.ScrapType;
 
 import java.util.List;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ScrapRequest {
 
     private String title;
