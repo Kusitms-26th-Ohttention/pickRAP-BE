@@ -27,8 +27,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MagazineService {
 
-    final static int MAX_TEXT_LENGTH = 400;
-    final static int MAX_TITLE_LENGTH = 30;
+    final static int MAX_TEXT_LENGTH = 200;
+    final static int MAX_TITLE_LENGTH = 15;
 
     private final MemberRepository memberRepository;
     private final MagazineRepository magazineRepository;
@@ -167,7 +167,6 @@ public class MagazineService {
             magazinePageRepository.save(page);
         });
 
-        magazineRepository.save(magazine);
     }
 
     public void checkMatchWriter(Magazine magazine, String email) {
