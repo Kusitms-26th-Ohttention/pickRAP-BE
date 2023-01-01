@@ -1,12 +1,13 @@
 package pickRAP.server.controller.dto.scrap;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 
 @Data
 @Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class ScrapUpdateRequest {
 
     private Long id;
