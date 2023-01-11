@@ -28,8 +28,6 @@ public class ScrapHashtag {
     @Builder
     public ScrapHashtag(Scrap scrap, Hashtag hashtag) {
         this.scrap = scrap;
-//        scrap.getScrapHashtags().add(this);
         this.hashtag = hashtag;
-//        hashtag.getScrapHashtags().add(this);
     }
 }
