@@ -252,7 +252,7 @@ public class ScrapService {
                 throw new BaseException(BaseExceptionStatus.DONT_EXIST_CATEGORY);
             }
         }
-        List<Hashtag> hashtags = saveHashtags(scrapRequest.getHashtags(), member);
+
         Scrap scrap = null;
 
         if(scrapRequest.getScrapType().equals("text")
@@ -275,13 +275,9 @@ public class ScrapService {
 
         }
 
-        for(Hashtag hashtag : hashtags) {
-            ScrapHashtag scrapHashtag = ScrapHashtag.builder()
-                    .scrap(scrap)
-                    .hashtag(hashtag)
-                    .build();
-            scrapHashtagRepository.save(scrapHashtag);
-        }
+        List<String> hashtags = scrapRequest.getHashtags();
+        saveScrapHashTag(hashtags, scrap, member);
+
         scrapRepository.save(scrap);
     }
 
@@ -303,13 +299,15 @@ public class ScrapService {
 
         scrap.updateScrap(scrapUpdateRequest.getTitle(), scrapUpdateRequest.getMemo());
 
-        List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrap.getId());
-        for(ScrapHashtag scrapHashtag : scrapHashtags) {
-            scrapHashtagRepository.deleteById(scrapHashtag.getId());
-        }
+        deleteHashTag(scrapUpdateRequest.getId());
 
-        List<Hashtag> hashtags = saveHashtags(scrapUpdateRequest.getHashtags(), member);
-        for(Hashtag hashtag : hashtags) {
+        List<String> hashtags = scrapUpdateRequest.getHashtags();
+        saveScrapHashTag(hashtags, scrap, member);
+    }
+
+    private void saveScrapHashTag(List<String> hashtags, Scrap scrap, Member member) {
+        List<Hashtag> saveHashtags = saveHashtags(hashtags, member);
+        for(Hashtag hashtag : saveHashtags) {
             ScrapHashtag scrapHashtag = ScrapHashtag.builder()
                     .scrap(scrap)
                     .hashtag(hashtag)
@@ -320,22 +318,15 @@ public class ScrapService {
 
     @Transactional
     public void delete(Long id, String email) {
-        if(scrapRepository.findById(id).isEmpty()) {
-            throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
-        }
-
         Member member = memberRepository.findByEmail(email).orElseThrow();
         Scrap scrap = scrapRepository.findById(id)
                 .orElseThrow(() -> new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP));
+
         if(!scrap.getMember().equals(member)) {
             throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
         }
 
-        List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(id);
-        for(ScrapHashtag scrapHashtag : scrapHashtags) {
-            scrapHashtagRepository.delete(scrapHashtag);
-        }
-
+        deleteHashTag(id);
         scrapRepository.deleteById(id);
     }
 
@@ -344,17 +335,19 @@ public class ScrapService {
 
         for(String hashtagRequest : hashtagRequests) {
             Optional<Hashtag> optionalHashtag = hashtagRepository.findMemberHashtag(hashtagRequest, member);
+
             if(optionalHashtag.isEmpty()) {
                 Hashtag hashtag = Hashtag.builder()
                         .tag(hashtagRequest)
+                        .member(member)
                         .build();
-                hashtag.setMember(member);
 
                 hashtags.add(hashtag);
-
                 hashtagRepository.save(hashtag);
             } else {
-                hashtags.add(optionalHashtag.get());
+                Hashtag findHashTag = optionalHashtag.get();
+                findHashTag.plusCount();
+                hashtags.add(findHashTag);
             }
         }
 
@@ -385,5 +378,20 @@ public class ScrapService {
         scrap.setCategory(category);
 
         return scrap;
+    }
+
+    private void deleteHashTag(Long scrapId){
+        List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrapId);
+        for(ScrapHashtag scrapHashtag : scrapHashtags) {
+            scrapHashtagRepository.delete(scrapHashtag);
+            decreaseHashTagCount(scrapHashtag.getHashtag());
+        }
+    }
+
+    private void decreaseHashTagCount(Hashtag hashtag) {
+        hashtag.minusCount();
+        if (hashtag.getCount() == 0) {
+            hashtagRepository.delete(hashtag);
+        }
     }
 }
