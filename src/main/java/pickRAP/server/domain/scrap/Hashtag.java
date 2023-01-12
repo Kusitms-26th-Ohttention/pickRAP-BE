@@ -23,19 +23,13 @@ public class Hashtag extends BaseEntity {
 
     private String tag;
 
-    private int count;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
-//    @OneToMany(mappedBy = "hashtag")
-//    private List<ScrapHashtag> scrapHashtags = new ArrayList<>();
-
     @Builder
     public Hashtag(String tag, Member member) {
         this.tag = tag;
-        this.count = 1;
         setMember(member);
     }
 
@@ -44,11 +38,4 @@ public class Hashtag extends BaseEntity {
         member.getHashtags().add(this);
     }
 
-    public void plusCount() {
-        count++;
-    }
-
-    public void minusCount() {
-        count--;
-    }
 }

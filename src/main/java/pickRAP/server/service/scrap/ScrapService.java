@@ -307,6 +307,7 @@ public class ScrapService {
 
     private void saveScrapHashTag(List<String> hashtags, Scrap scrap, Member member) {
         List<Hashtag> saveHashtags = saveHashtags(hashtags, member);
+
         for(Hashtag hashtag : saveHashtags) {
             ScrapHashtag scrapHashtag = ScrapHashtag.builder()
                     .scrap(scrap)
@@ -334,21 +335,13 @@ public class ScrapService {
         List<Hashtag> hashtags = new ArrayList<>();
 
         for(String hashtagRequest : hashtagRequests) {
-            Optional<Hashtag> optionalHashtag = hashtagRepository.findMemberHashtag(hashtagRequest, member);
+            Hashtag hashtag = Hashtag.builder()
+                    .tag(hashtagRequest)
+                    .member(member)
+                    .build();
 
-            if(optionalHashtag.isEmpty()) {
-                Hashtag hashtag = Hashtag.builder()
-                        .tag(hashtagRequest)
-                        .member(member)
-                        .build();
-
-                hashtags.add(hashtag);
-                hashtagRepository.save(hashtag);
-            } else {
-                Hashtag findHashTag = optionalHashtag.get();
-                findHashTag.plusCount();
-                hashtags.add(findHashTag);
-            }
+            hashtags.add(hashtag);
+            hashtagRepository.save(hashtag);
         }
 
         return hashtags;
@@ -384,14 +377,7 @@ public class ScrapService {
         List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrapId);
         for(ScrapHashtag scrapHashtag : scrapHashtags) {
             scrapHashtagRepository.delete(scrapHashtag);
-            decreaseHashTagCount(scrapHashtag.getHashtag());
-        }
-    }
-
-    private void decreaseHashTagCount(Hashtag hashtag) {
-        hashtag.minusCount();
-        if (hashtag.getCount() == 0) {
-            hashtagRepository.delete(hashtag);
+            hashtagRepository.delete(scrapHashtag.getHashtag());
         }
     }
 }
