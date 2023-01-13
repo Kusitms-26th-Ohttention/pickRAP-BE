@@ -8,7 +8,7 @@ import pickRAP.server.domain.scrap.Hashtag;
 
 import java.util.Optional;
 
-public interface HashtagRepository extends JpaRepository<Hashtag, Long> {
+public interface HashtagRepository extends JpaRepository<Hashtag, Long>, HashTagRepositoryCustom{
 
     @Query("select h from Hashtag h where h.tag = :tag and h.member = :member")
     Optional<Hashtag> findMemberHashtag(@Param("tag") String tag, @Param("member")Member member);
