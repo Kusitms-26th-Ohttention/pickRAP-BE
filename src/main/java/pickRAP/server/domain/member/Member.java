@@ -6,8 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pickRAP.server.common.BaseEntity;
 import pickRAP.server.domain.category.Category;
+import pickRAP.server.domain.hashtag.Hashtag;
 import pickRAP.server.domain.magazine.Magazine;
-import pickRAP.server.domain.scrap.Hashtag;
 import pickRAP.server.domain.scrap.Scrap;
 
 import javax.persistence.*;

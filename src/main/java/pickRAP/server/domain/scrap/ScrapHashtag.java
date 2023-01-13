@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import pickRAP.server.domain.hashtag.Hashtag;
 
 import javax.persistence.*;
 
