@@ -1,4 +1,4 @@
-package pickRAP.server.domain.scrap;
+package pickRAP.server.domain.hashtag;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -8,8 +8,6 @@ import pickRAP.server.common.BaseEntity;
 import pickRAP.server.domain.member.Member;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Getter
@@ -27,16 +25,15 @@ public class Hashtag extends BaseEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
-//    @OneToMany(mappedBy = "hashtag")
-//    private List<ScrapHashtag> scrapHashtags = new ArrayList<>();
-
     @Builder
-    public Hashtag(String tag) {
+    public Hashtag(String tag, Member member) {
         this.tag = tag;
+        setMember(member);
     }
 
     public void setMember(Member member) {
         this.member = member;
         member.getHashtags().add(this);
     }
+
 }
