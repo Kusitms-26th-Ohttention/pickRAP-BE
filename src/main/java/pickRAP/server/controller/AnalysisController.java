@@ -12,13 +12,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pickRAP.server.common.BaseResponse;
 import pickRAP.server.controller.dto.analysis.AnalysisResponse;
-import pickRAP.server.controller.dto.analysis.HashTagResponse;
-import pickRAP.server.repository.hashtag.HashtagRepository;
 import pickRAP.server.service.auth.AuthService;
 import pickRAP.server.service.hashtag.HashtagService;
 
-import java.time.LocalDateTime;
-import java.util.List;
+
 
 @Slf4j
 @RequestMapping("/analysis")

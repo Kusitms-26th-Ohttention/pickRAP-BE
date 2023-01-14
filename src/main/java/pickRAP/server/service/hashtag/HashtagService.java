@@ -1,10 +1,8 @@
 package pickRAP.server.service.hashtag;
 
-import com.querydsl.core.QueryResults;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pickRAP.server.common.BaseException;
 import pickRAP.server.controller.dto.analysis.AnalysisResponse;
 import pickRAP.server.controller.dto.analysis.HashTagResponse;
 import pickRAP.server.controller.dto.analysis.HashtagFilterCondition;

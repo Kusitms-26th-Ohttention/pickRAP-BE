@@ -1,6 +1,5 @@
 package pickRAP.server.repository.hashtag;
 
-import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -48,21 +47,18 @@ public class HashtagRepositoryImpl implements HashtagRepositoryCustom {
         Integer year = hashtagFilterCond.getYear();
         Integer month = hashtagFilterCond.getMonth();
 
+
         if (filter.equals("all")) {
             return null;
         } else if (filter.equals("recent")){
             return hashtag.createTime.after(LocalDateTime.now().minusMonths(3));
         } else if (filter.equals("year")){
-            return hashtag.createTime
-                    .between(LocalDateTime.of(year, 1, 1, 0, 0)
-                            , LocalDateTime.of(year, 12, 31, 23, 59));
+            LocalDateTime startYearDate = LocalDateTime.of(year, 1, 1, 0, 0);
+            return hashtag.createTime.goe(startYearDate).and(hashtag.createTime.lt(startYearDate.plusYears(1)));
         } else if (filter.equals("month")) {
-            if (month == 12) {
-                return hashtag.createTime.goe(LocalDateTime.of(year, month, 1, 0, 0))
-                        .and(hashtag.createTime.lt(LocalDateTime.of(year + 1, 1, 1, 0, 0)));
-            }
-            return hashtag.createTime.goe(LocalDateTime.of(year, month, 1, 0, 0))
-                    .and(hashtag.createTime.lt(LocalDateTime.of(year, month + 1, 1, 0, 0)));
+            LocalDateTime startMonthDate = LocalDateTime.of(year, month, 1, 0, 0);
+            return hashtag.createTime.goe(startMonthDate)
+                    .and(hashtag.createTime.lt(startMonthDate.plusMonths(1)));
         }
         return null;
     }
