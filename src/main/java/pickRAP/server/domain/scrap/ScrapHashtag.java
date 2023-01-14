@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import pickRAP.server.domain.hashtag.Hashtag;
 
 import javax.persistence.*;
 
@@ -28,8 +29,6 @@ public class ScrapHashtag {
     @Builder
     public ScrapHashtag(Scrap scrap, Hashtag hashtag) {
         this.scrap = scrap;
-//        scrap.getScrapHashtags().add(this);
         this.hashtag = hashtag;
-//        hashtag.getScrapHashtags().add(this);
     }
 }
