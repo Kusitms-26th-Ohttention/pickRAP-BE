@@ -120,7 +120,7 @@ public class MagazineController {
             throw new BaseException(BaseExceptionStatus.NOT_SELECTED_ELEMENT);
         }
         ids.forEach(id->
-                magazineService.deletePage(Long.parseLong(id)));
+                magazineService.deletePage(Long.parseLong(id), authService.getUserEmail()));
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }

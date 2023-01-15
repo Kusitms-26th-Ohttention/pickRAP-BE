@@ -17,6 +17,7 @@ import pickRAP.server.repository.magazine.MagazineRepository;
 import pickRAP.server.repository.magazine.MagazineRepositoryCustom;
 import pickRAP.server.repository.member.MemberRepository;
 import pickRAP.server.repository.scrap.ScrapRepository;
+import pickRAP.server.service.text.TextService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,7 @@ public class MagazineService {
     private final MagazineRepositoryCustom magazineRepositoryCustom;
     private final MagazinePageRepository magazinePageRepository;
     private final ScrapRepository scrapRepository;
+    private final TextService textService;
 
     @Transactional
     public void save(MagazineRequest request, String email) {
@@ -59,7 +61,7 @@ public class MagazineService {
                 .cover(cover.get().getFileUrl())
                 .build();
 
-        saveMagazinePages(request.getPageList(), magazine);
+        saveMagazinePages(request.getPageList(), magazine, member);
 
         return;
     }
@@ -139,15 +141,17 @@ public class MagazineService {
 
         findMagazine.updateMagazine(request.getTitle(), request.isOpenStatus(), cover.get().getFileUrl());
 
+        deleteTextByMagazine(findMagazine, email);
+
         magazinePageRepository.deleteByMagazineId(findMagazine.getId());
 
-        saveMagazinePages(request.getPageList(), findMagazine);
+        saveMagazinePages(request.getPageList(), findMagazine, member);
 
         return;
     }
 
     @Transactional
-    public void saveMagazinePages(List<MagazinePageRequest> requestList, Magazine magazine) {
+    public void saveMagazinePages(List<MagazinePageRequest> requestList, Magazine magazine, Member member) {
         requestList.forEach(p -> {
             if (p.getText().length() > MAX_TEXT_LENGTH) {
                 throw new BaseException(BaseExceptionStatus.EXCEED_TEXT_LENGTH);
@@ -163,6 +167,8 @@ public class MagazineService {
                     .text(p.getText())
                     .magazine(magazine)
                     .build();
+
+            textService.save(member, page.getText());
 
             magazinePageRepository.save(page);
         });
@@ -181,12 +187,32 @@ public class MagazineService {
 
         checkMatchWriter(findMagazine, email);
 
+        deleteTextByMagazine(findMagazine, email);
+
         magazineRepository.delete(findMagazine);
     }
 
     @Transactional
-    public void deletePage(Long pageId) {
+    public void deleteTextByMagazine(Magazine magazine, String email) {
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        List<String> texts = magazinePageRepository.findTextByMagazine(magazine);
+
+        texts.forEach(t -> textService.delete(member, t));
+    }
+
+    @Transactional
+    public void deletePage(Long pageId, String email) {
+        deleteTextByPage(pageId, email);
+
         magazinePageRepository.deleteById(pageId);
+    }
+
+    @Transactional
+    public void deleteTextByPage(Long pageId, String email) {
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        String text = magazinePageRepository.findTextById(pageId);
+
+        textService.delete(member, text);
     }
 
     @Transactional(readOnly = true)

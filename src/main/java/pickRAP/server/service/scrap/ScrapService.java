@@ -24,6 +24,7 @@ import pickRAP.server.repository.hashtag.HashtagRepository;
 import pickRAP.server.repository.scrap.ScrapHashtagRepository;
 import pickRAP.server.repository.scrap.ScrapRepository;
 import pickRAP.server.service.s3.S3Service;
+import pickRAP.server.service.text.TextService;
 
 import java.io.IOException;
 import java.util.*;
@@ -44,6 +45,8 @@ public class ScrapService {
     private final MemberRepository memberRepository;
 
     private final S3Service s3Service;
+
+    private final TextService textService;
 
     public ScrapResponse findOne(Long id, String email) {
         if(Objects.isNull(id)) {
@@ -78,73 +81,8 @@ public class ScrapService {
         return scrapResponse;
     }
 
-    public Slice<ScrapResponse> filterPageScraps(String filter, Long categoryId, String searchKeyword, String orderKeyword, String email, Pageable pageable) {
-        Member member = memberRepository.findByEmail(email).orElseThrow();
-        Slice<ScrapResponse> scrapResponses;
-        ScrapFilterCondition scrapFilterCondition;
-
-        if(filter.equals("category")) {
-            if(Objects.isNull(categoryId)) {
-                throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
-            }
-
-            scrapFilterCondition = ScrapFilterCondition.builder()
-                    .categoryId(categoryId)
-                    .orderKeyword(orderKeyword)
-                    .memberId(member.getId())
-                    .build();
-        } else if(filter.equals("text") || filter.equals("link")
-                || filter.equals("image") || filter.equals("video") || filter.equals("pdf")) {
-            scrapFilterCondition = ScrapFilterCondition.builder()
-                    .scrapType(ScrapType.valueOf(filter.toUpperCase(Locale.ROOT)))
-                    .orderKeyword(orderKeyword)
-                    .memberId(member.getId())
-                    .build();
-        } else if (filter.equals("keyword")) {
-            if(StringUtils.isEmpty(searchKeyword)) {
-                throw new BaseException(BaseExceptionStatus.DONT_EXIST_KEYWORD);
-            }
-
-            scrapFilterCondition = ScrapFilterCondition.builder()
-                    .searchKeyword(searchKeyword)
-                    .orderKeyword(orderKeyword)
-                    .memberId(member.getId())
-                    .build();
-        } else if (filter.equals("all")) {
-            scrapFilterCondition = ScrapFilterCondition.builder()
-                    .memberId(member.getId())
-                    .orderKeyword(orderKeyword)
-                    .build();
-        } else {
-            throw new BaseException(BaseExceptionStatus.DONT_EXIST_PATH);
-        }
-
-        if(pageable.getPageNumber() == 0) {
-            scrapResponses = scrapRepository.filterPageScraps(null, scrapFilterCondition, pageable);
-        } else {
-            if(StringUtils.isEmpty(scrapFilterCondition.getOrderKeyword())) {
-                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() + 1), scrapFilterCondition, pageable);
-            } else if(scrapFilterCondition.getOrderKeyword().equals("asc")) {
-                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() - 1), scrapFilterCondition, pageable);
-            } else {
-                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() + 1), scrapFilterCondition, pageable);
-            }
-        }
-
-        //로직 고민
-        for(ScrapResponse scrapResponse : scrapResponses) {
-            List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrapResponse.getId());
-
-            for(ScrapHashtag scrapHashtag : scrapHashtags) {
-                scrapResponse.getHashtags().add(scrapHashtag.getHashtag().getTag());
-            }
-        }
-
-        return scrapResponses;
-    }
-
     public Slice<ScrapResponse> searchPageScraps(String searchKeyword, String orderKeyword, String email, Pageable pageable) {
-        if(StringUtils.isEmpty(orderKeyword)) {
+        if(!StringUtils.hasText(orderKeyword)) {
             throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
         }
 
@@ -152,7 +90,7 @@ public class ScrapService {
         Slice<ScrapResponse> scrapResponses = null;
         ScrapFilterCondition scrapFilterCondition;
 
-        if(StringUtils.isEmpty(searchKeyword)) {
+        if(!StringUtils.hasText(searchKeyword)) {
             throw new BaseException(BaseExceptionStatus.DONT_EXIST_KEYWORD);
         }
 
@@ -166,9 +104,9 @@ public class ScrapService {
             scrapResponses = scrapRepository.filterPageScraps(null, scrapFilterCondition, pageable);
         } else {
             if(scrapFilterCondition.getOrderKeyword().equals("asc")) {
-                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() - 1), scrapFilterCondition, pageable);
+                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() - 1L), scrapFilterCondition, pageable);
             } else if(scrapFilterCondition.getOrderKeyword().equals("desc")) {
-                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() + 1), scrapFilterCondition, pageable);
+                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() + 1L), scrapFilterCondition, pageable);
             }
         }
 
@@ -189,7 +127,7 @@ public class ScrapService {
     }
 
     public Slice<ScrapResponse> filterTypePageScraps(String filter, String orderKeyword, String email, Pageable pageable) {
-        if(StringUtils.isEmpty(orderKeyword)) {
+        if(!StringUtils.hasText(orderKeyword)) {
             throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
         }
 
@@ -208,9 +146,9 @@ public class ScrapService {
             scrapResponses = scrapRepository.filterPageScraps(null, scrapFilterCondition, pageable);
         } else {
              if(scrapFilterCondition.getOrderKeyword().equals("asc")) {
-                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() - 1), scrapFilterCondition, pageable);
+                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() - 1L), scrapFilterCondition, pageable);
             } else if(scrapFilterCondition.getOrderKeyword().equals("desc")) {
-                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() + 1), scrapFilterCondition, pageable);
+                scrapResponses = scrapRepository.filterPageScraps(Long.valueOf(pageable.getPageNumber() + 1L), scrapFilterCondition, pageable);
             }
         }
 
@@ -233,10 +171,10 @@ public class ScrapService {
     @Transactional
     public void save(ScrapRequest scrapRequest, MultipartFile multipartFile, String email) throws IOException {
         if(scrapRequest.getHashtags().isEmpty()
-                || StringUtils.isEmpty(scrapRequest.getScrapType())) {
+                || !StringUtils.hasText(scrapRequest.getScrapType())) {
             throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
         }
-        if(!StringUtils.isEmpty(scrapRequest.getTitle()) && scrapRequest.getTitle().length() > 15) {
+        if(StringUtils.hasText(scrapRequest.getTitle()) && scrapRequest.getTitle().length() > 15) {
             throw new BaseException(BaseExceptionStatus.SCRAP_TITLE_LONG);
         }
 
@@ -253,12 +191,12 @@ public class ScrapService {
             }
         }
 
-        Scrap scrap = null;
+        Scrap scrap = Scrap.builder().build();
 
         if(scrapRequest.getScrapType().equals("text")
                 || scrapRequest.getScrapType().equals("link")) {
 
-            if(StringUtils.isEmpty(scrapRequest.getContent())) {
+            if(!StringUtils.hasText(scrapRequest.getContent())) {
                 throw new BaseException(BaseExceptionStatus.DONT_EXIST_CONTENT);
             }
             scrap = createContentScrap(scrapRequest, member, category);
@@ -279,6 +217,8 @@ public class ScrapService {
         saveScrapHashTag(hashtags, scrap, member);
 
         scrapRepository.save(scrap);
+
+        saveTextByScrap(scrap, member, false);
     }
 
     @Transactional
@@ -286,7 +226,7 @@ public class ScrapService {
         if(scrapUpdateRequest.getHashtags().isEmpty()) {
             throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
         }
-        if(!StringUtils.isEmpty(scrapUpdateRequest.getTitle()) && scrapUpdateRequest.getTitle().length() > 15) {
+        if(StringUtils.hasText(scrapUpdateRequest.getTitle()) && scrapUpdateRequest.getTitle().length() > 15) {
             throw new BaseException(BaseExceptionStatus.SCRAP_TITLE_LONG);
         }
 
@@ -297,9 +237,13 @@ public class ScrapService {
             throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
         }
 
+        deleteTextByScrap(scrap, member, true);
+
         scrap.updateScrap(scrapUpdateRequest.getTitle(), scrapUpdateRequest.getMemo());
 
-        deleteHashTag(scrapUpdateRequest.getId());
+        saveTextByScrap(scrap, member, true);
+
+        deleteHashtag(scrapUpdateRequest.getId());
 
         List<String> hashtags = scrapUpdateRequest.getHashtags();
         saveScrapHashTag(hashtags, scrap, member);
@@ -327,7 +271,9 @@ public class ScrapService {
             throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
         }
 
-        deleteHashTag(id);
+        deleteHashtag(id);
+        deleteTextByScrap(scrap, member, false);
+
         scrapRepository.deleteById(id);
     }
 
@@ -373,11 +319,25 @@ public class ScrapService {
         return scrap;
     }
 
-    private void deleteHashTag(Long scrapId){
+    private void deleteHashtag(Long scrapId){
         List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrapId);
         for(ScrapHashtag scrapHashtag : scrapHashtags) {
             scrapHashtagRepository.delete(scrapHashtag);
             hashtagRepository.delete(scrapHashtag.getHashtag());
+        }
+    }
+
+    private void saveTextByScrap(Scrap scrap, Member member, boolean update) {
+        textService.save(member, scrap.getMemo());
+        if (scrap.getScrapType() == ScrapType.TEXT && !update) {
+            textService.save(member, scrap.getContent());
+        }
+    }
+
+    private void deleteTextByScrap(Scrap scrap, Member member, boolean update) {
+        textService.delete(member, scrap.getMemo());
+        if (scrap.getScrapType() == ScrapType.TEXT && !update) {
+            textService.delete(member, scrap.getContent());
         }
     }
 }
