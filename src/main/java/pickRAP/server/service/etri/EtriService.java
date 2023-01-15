@@ -2,6 +2,7 @@ package pickRAP.server.service.etri;
 
 import com.google.gson.Gson;
 import net.minidev.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -16,10 +17,16 @@ import java.util.Map;
 @Service
 public class EtriService {
 
+    @Value("${etri.api.url}")
+    private String openApiURL;
+
+    @Value("${etri.api.access-key}")
+    private String accessKey;
+
     public Map<String, Long> analyzeText(String text) {
-        String openApiURL = "http://aiopen.etri.re.kr:8000/WiseNLU";
-        String accessKey = "8e6065ad-307b-45b1-bc37-4740cab32bfe";   // 발급받은 API Key
-        String analysisCode = "morp";        // 언어 분석 코드
+
+        String analysisCode = "morp";
+
         Gson gson = new Gson();
 
         try {
