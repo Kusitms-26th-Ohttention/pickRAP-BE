@@ -106,6 +106,7 @@ public class MagazineController {
         ids.forEach(id->
                 magazineService.deleteMagazine(Long.parseLong(id), email));
 
+
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
 

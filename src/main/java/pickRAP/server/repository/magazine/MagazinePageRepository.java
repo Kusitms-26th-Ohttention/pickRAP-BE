@@ -16,4 +16,5 @@ public interface MagazinePageRepository extends JpaRepository<MagazinePage, Long
 
     @Query("select mp.text from MagazinePage mp where mp.magazine = :magazine")
     List<String> findTextByMagazine(@Param("magazine") Magazine magazine);
+
 }

@@ -197,6 +197,7 @@ public class MagazineService {
         Member member = memberRepository.findByEmail(email).orElseThrow();
         List<String> texts = magazinePageRepository.findTextByMagazine(magazine);
 
+
         texts.forEach(t -> textService.delete(member, t));
     }
 
