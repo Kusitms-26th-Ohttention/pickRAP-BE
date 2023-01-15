@@ -1,15 +1,12 @@
-package pickRAP.server.repository.word;
+package pickRAP.server.repository.text;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import pickRAP.server.domain.member.Member;
-import pickRAP.server.domain.word.Word;
+import pickRAP.server.domain.text.Text;
 
-import java.util.List;
 import java.util.Optional;
 
-public interface WordRepository extends JpaRepository<Word, Long>, WordRepositoryCustom {
+public interface TextRepository extends JpaRepository<Text, Long>, TextRepositoryCustom {
 
-    Optional<Word> findByValueAndMember(String value, Member member);
-
-    List<Word> findTop5ByMemberOrderByCountDesc(Member member);
+    Optional<Text> findByWordAndMember(String word, Member member);
 }

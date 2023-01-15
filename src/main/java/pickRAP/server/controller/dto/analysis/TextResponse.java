@@ -1,21 +1,24 @@
-package pickRAP.server.controller.dto.word;
+package pickRAP.server.controller.dto.analysis;
 
-import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.querydsl.core.annotations.QueryProjection;
 import lombok.Data;
 
 @Data
 public class TextResponse {
 
-    String text;
+    @JsonProperty("text_word")
+    String word;
 
-    long count;
-
+    @JsonProperty("text_rate")
     long rate;
 
-    @Builder
-    public TextResponse(String text, long count, long rate) {
-        this.text = text;
+    @JsonProperty("text_count")
+    long count;
+
+    @QueryProjection
+    public TextResponse(String word, long count) {
+        this.word = word;
         this.count = count;
-        this.rate = rate;
     }
 }

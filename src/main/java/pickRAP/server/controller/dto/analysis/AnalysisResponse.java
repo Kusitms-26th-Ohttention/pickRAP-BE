@@ -11,5 +11,5 @@ public class AnalysisResponse {
 
     private List<HashTagResponse> hashtags;
 
-    // 텍스트 추가
+    private List<TextResponse> texts;
 }

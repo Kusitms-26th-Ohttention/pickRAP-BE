@@ -1,95 +1,100 @@
-package pickRAP.server.service.word;
+package pickRAP.server.service.text;
 
 import lombok.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pickRAP.server.controller.dto.word.TextResponse;
+import pickRAP.server.controller.dto.analysis.TextResponse;
 import pickRAP.server.domain.member.Member;
-import pickRAP.server.domain.word.Word;
+import pickRAP.server.domain.text.Text;
 import pickRAP.server.repository.member.MemberRepository;
-import pickRAP.server.repository.word.WordRepository;
+import pickRAP.server.repository.text.TextRepository;
 import pickRAP.server.service.etri.EtriService;
 
 import java.util.*;
+import java.util.Map.Entry;
 
 @Service
 @RequiredArgsConstructor
-public class WordService {
+public class TextService {
 
-    private final WordRepository wordRepository;
+    private final TextRepository textRepository;
 
     private final EtriService etriService;
 
     private final MemberRepository memberRepository;
 
     @Transactional
-    public void save(Member member, String text) {
-        Map<String, Long> words = etriService.analyzeText(text);
+    public void save(Member member, String sentence) {
+        Map<String, Long> texts = etriService.analyzeText(sentence);
 
-        for (String value : words.keySet()) {
-            Optional<Word> findWord = wordRepository.findByValueAndMember(value, member);
+        for (Entry<String, Long> entry : texts.entrySet()) {
+            String word = entry.getKey();
+            Long count = entry.getValue();
 
-            if (findWord.isPresent()) {
-                Word word = findWord.get();
-                word.plusCount(words.get(value));
+            Optional<Text> findText = textRepository.findByWordAndMember(word, member);
+
+            if (findText.isPresent()) {
+                Text text = findText.get();
+                text.plusCount(count);
             } else {
-                Word word = Word.builder()
-                        .value(value)
-                        .count(words.get(value))
+                Text text = Text.builder()
+                        .word(word)
+                        .count(count)
                         .member(member)
                         .build();
-                wordRepository.save(word);
+                textRepository.save(text);
             }
         }
     }
 
     @Transactional
-    public void delete(Member member, String text) {
-        Map<String, Long> words = etriService.analyzeText(text);
+    public void delete(Member member, String sentence) {
+        Map<String, Long> texts = etriService.analyzeText(sentence);
 
-        for (String value : words.keySet()) {
-            Word word = wordRepository.findByValueAndMember(value, member).orElseThrow();
-            word.minusCount(words.get(value));
+        for (Entry<String, Long> entry : texts.entrySet()) {
+            String word = entry.getKey();
+            Long count = entry.getValue();
 
-            if (word.getCount() == 0) {
-                wordRepository.delete(word);
+            Optional<Text> findText = textRepository.findByWordAndMember(word, member);
+            if (findText.isPresent()) {
+                Text text = findText.get();
+
+                text.minusCount(count);
+                if (text.getCount() == 0) {
+                    textRepository.delete(text);
+                }
             }
         }
     }
 
-    public AnalysisResponse getTextAnalysisResult(String email) {
+    public List<TextResponse> getTextAnalysisResults(String email) {
         Member member = memberRepository.findByEmail(email).orElseThrow();
 
-        List<Word> words = wordRepository.findTop5ByMemberOrderByCountDesc(member);
+        List<TextResponse> textResponses = textRepository.findWordCountByMember(member);
 
-        return setRate(words);
+        return setRate(textResponses);
     }
 
-    private AnalysisResponse setRate(List<Word> words) {
-        AnalysisResponse analysisResponse = new AnalysisResponse();
-
+    private List<TextResponse> setRate(List<TextResponse> textResponses) {
         long sum = 0;
-        for (Word word : words) {
-            sum += word.getCount();
+        long totalRate = 0;
+
+        for (TextResponse textResponse : textResponses) {
+            sum += textResponse.getCount();
         }
-        for (Word word : words) {
-            long rate = (long) ((double) word.getCount() / (double) sum * 100.0);
-            analysisResponse.getTextResponses().add(
-                    TextResponse.builder()
-                            .text(word.getValue())
-                            .count(word.getCount())
-                            .rate(rate)
-                            .build()
-            );
+        if (sum == 0) {
+            return textResponses;
         }
 
-        return analysisResponse;
-    }
+        for (TextResponse textResponse : textResponses) {
+            long rate = (long) ((double) textResponse.getCount() / sum * 100.0);
+            totalRate += rate;
+            textResponse.setRate(rate);
+        }
+        if (totalRate < 100) {
+            textResponses.get(0).setRate(textResponses.get(0).getRate() + (100L - totalRate));
+        }
 
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    public static class AnalysisResponse {
-        List<TextResponse> textResponses = new ArrayList<>();
+        return textResponses;
     }
 }
