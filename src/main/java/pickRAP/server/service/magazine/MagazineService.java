@@ -192,7 +192,6 @@ public class MagazineService {
         magazineRepository.delete(findMagazine);
     }
 
-    @Transactional
     public void deleteTextByMagazine(Magazine magazine, String email) {
         Member member = memberRepository.findByEmail(email).orElseThrow();
         List<String> texts = magazinePageRepository.findTextByMagazine(magazine);
@@ -207,7 +206,6 @@ public class MagazineService {
         magazinePageRepository.deleteById(pageId);
     }
 
-    @Transactional
     public void deleteTextByPage(Long pageId, String email) {
         Member member = memberRepository.findByEmail(email).orElseThrow();
         String text = magazinePageRepository.findTextById(pageId);
