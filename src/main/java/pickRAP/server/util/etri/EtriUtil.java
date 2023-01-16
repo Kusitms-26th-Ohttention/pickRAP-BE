@@ -1,29 +1,40 @@
-package pickRAP.server.service.etri;
+package pickRAP.server.util.etri;
 
 import com.google.gson.Gson;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import net.minidev.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Service
-public class EtriService {
+@Component
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class EtriUtil {
+
+    private static String openApiURL;
+
+    private static String accessKey;
 
     @Value("${etri.api.url}")
-    private String openApiURL;
+    public void setOpenApiURL(String url) {
+        openApiURL = url;
+    }
 
     @Value("${etri.api.access-key}")
-    private String accessKey;
+    public void setAccessKey(String key) {
+        accessKey = key;
+    }
 
-    public Map<String, Long> analyzeText(String text) {
+    public static Map<String, Long> analyzeText(String text) {
 
         String analysisCode = "morp";
 

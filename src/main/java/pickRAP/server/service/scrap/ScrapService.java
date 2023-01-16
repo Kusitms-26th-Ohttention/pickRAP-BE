@@ -23,11 +23,12 @@ import pickRAP.server.repository.member.MemberRepository;
 import pickRAP.server.repository.hashtag.HashtagRepository;
 import pickRAP.server.repository.scrap.ScrapHashtagRepository;
 import pickRAP.server.repository.scrap.ScrapRepository;
-import pickRAP.server.service.s3.S3Service;
 import pickRAP.server.service.text.TextService;
 
 import java.io.IOException;
 import java.util.*;
+
+import static pickRAP.server.util.s3.S3Util.uploadFile;
 
 @Slf4j
 @Service
@@ -43,8 +44,6 @@ public class ScrapService {
     private final CategoryRepository categoryRepository;
 
     private final MemberRepository memberRepository;
-
-    private final S3Service s3Service;
 
     private final TextService textService;
 
@@ -208,7 +207,7 @@ public class ScrapService {
             if(multipartFile.isEmpty()) {
                 throw new BaseException(BaseExceptionStatus.DONT_EXIST_FILE);
             }
-            String fileUrl = s3Service.uploadFile(multipartFile, "scrap");
+            String fileUrl = uploadFile(multipartFile, "scrap");
             scrap = createFileScrap(scrapRequest, member, category, fileUrl);
 
         }

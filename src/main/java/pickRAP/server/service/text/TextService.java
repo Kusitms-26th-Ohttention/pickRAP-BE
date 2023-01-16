@@ -8,10 +8,11 @@ import pickRAP.server.domain.member.Member;
 import pickRAP.server.domain.text.Text;
 import pickRAP.server.repository.member.MemberRepository;
 import pickRAP.server.repository.text.TextRepository;
-import pickRAP.server.service.etri.EtriService;
 
 import java.util.*;
 import java.util.Map.Entry;
+
+import static pickRAP.server.util.etri.EtriUtil.analyzeText;
 
 @Service
 @RequiredArgsConstructor
@@ -19,13 +20,11 @@ public class TextService {
 
     private final TextRepository textRepository;
 
-    private final EtriService etriService;
-
     private final MemberRepository memberRepository;
 
     @Transactional
     public void save(Member member, String sentence) {
-        Map<String, Long> texts = etriService.analyzeText(sentence);
+        Map<String, Long> texts = analyzeText(sentence);
 
         for (Entry<String, Long> entry : texts.entrySet()) {
             String word = entry.getKey();
@@ -49,7 +48,7 @@ public class TextService {
 
     @Transactional
     public void delete(Member member, String sentence) {
-        Map<String, Long> texts = etriService.analyzeText(sentence);
+        Map<String, Long> texts = analyzeText(sentence);
 
         for (Entry<String, Long> entry : texts.entrySet()) {
             String word = entry.getKey();
