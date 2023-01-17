@@ -1,8 +1,6 @@
 package pickRAP.server.controller;
 
-import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
@@ -14,11 +12,11 @@ import pickRAP.server.controller.dto.profile.ProfileRequest;
 import pickRAP.server.controller.dto.profile.ProfileResponse;
 import pickRAP.server.service.auth.AuthService;
 import pickRAP.server.service.profile.ProfileService;
-import pickRAP.server.service.s3.S3Service;
 
 import java.io.IOException;
 
 import static pickRAP.server.common.BaseExceptionStatus.SUCCESS;
+import static pickRAP.server.util.s3.S3Util.uploadFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,7 +24,6 @@ public class ProfileController {
 
     private final ProfileService profileService;
     private final AuthService authService;
-    private final S3Service s3Service;
 
     @GetMapping("/profile")
     @ApiOperation(value = "프로필 정보 가져오기", notes = "유저 프로필 정보 가져오기")
@@ -48,7 +45,7 @@ public class ProfileController {
                                                      ) throws IOException {
         String profileImageUrl = "";
         if(!multipartFile.isEmpty()) {
-            profileImageUrl = s3Service.uploadFile(multipartFile, "content");
+            profileImageUrl = uploadFile(multipartFile, "content");
         }
 
         profileService.updateProfile(authService.getUserEmail(), request, profileImageUrl);
