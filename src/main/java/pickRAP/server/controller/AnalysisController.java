@@ -14,7 +14,7 @@ import pickRAP.server.common.BaseResponse;
 import pickRAP.server.controller.dto.analysis.AnalysisResponse;
 import pickRAP.server.service.auth.AuthService;
 import pickRAP.server.service.hashtag.HashtagService;
-
+import pickRAP.server.service.text.TextService;
 
 
 @Slf4j
@@ -25,6 +25,7 @@ public class AnalysisController {
 
     private final AuthService authService;
     private final HashtagService hashtagService;
+    private final TextService textService;
 
     @GetMapping
     @ApiOperation(value = "분석", notes = "해시태그 분석 & 텍스트 분석<br>" +
@@ -36,7 +37,7 @@ public class AnalysisController {
     @ApiResponses({
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
-    public ResponseEntity<BaseResponse<AnalysisResponse>> getHashTagAnalysis(@RequestParam("filter") String filter
+    public ResponseEntity<BaseResponse<AnalysisResponse>> getAnalysis(@RequestParam("filter") String filter
             , @RequestParam(value="year", required = false) Integer year
             , @RequestParam(value="month", required = false) Integer month) {
 
@@ -45,9 +46,8 @@ public class AnalysisController {
         AnalysisResponse analysisResponse = hashtagService.getHashtagAnalysisResults(filter, year, month, email);
 
         // 텍스트 분석
-
+        analysisResponse.setTexts(textService.getTextAnalysisResults(email));
 
         return ResponseEntity.ok(new BaseResponse(analysisResponse));
     }
-
 }

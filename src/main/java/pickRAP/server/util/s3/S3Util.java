@@ -1,15 +1,15 @@
-package pickRAP.server.service.s3;
+package pickRAP.server.util.s3;
 
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.*;
 import com.amazonaws.util.IOUtils;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseExceptionStatus;
@@ -21,18 +21,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Slf4j
-@Service
-@RequiredArgsConstructor
-public class S3Service {
+import static pickRAP.server.config.s3.S3Config.amazonS3Client;
+
+@Component
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class S3Util {
+
+    private static String bucket;
 
     @Value("${cloud.aws.s3.bucket}")
-    private String bucket;
+    public void setBucket(String buc) {
+        bucket = buc;
+    }
 
-    private final AmazonS3Client amazonS3Client;
+    private static final AmazonS3Client amazonS3Client = amazonS3Client();
 
     //단일 파일 올리기 (s3 파일 이름 반환)
-    public String uploadFile(MultipartFile multipartFile, String dir) throws IOException {
+    public static String uploadFile(MultipartFile multipartFile, String dir) throws IOException {
         try {
             if(!checkFile(multipartFile.getContentType().substring(multipartFile.getContentType().lastIndexOf("/")))) {
                 throw new BaseException(BaseExceptionStatus.NOT_SUPPORT_FILE);
@@ -55,7 +60,7 @@ public class S3Service {
     }
 
     //다중 파일 올리기 (s3 파일 이름 리스트 반환)
-    public List<String> uploadFiles(List<MultipartFile> multipartFiles, String dir) throws IOException {
+    public static List<String> uploadFiles(List<MultipartFile> multipartFiles, String dir) throws IOException {
         List<String> fileNames = new ArrayList<>();
 
         for(MultipartFile multipartFile : multipartFiles) {
@@ -66,7 +71,7 @@ public class S3Service {
     }
 
     //파일 가져와서 http 전송
-    public ResponseEntity<byte[]> downloadFile(String fileName, String dir) throws Exception {
+    public static ResponseEntity<byte[]> downloadFile(String fileName, String dir) throws Exception {
         try {
             S3Object s3Object = amazonS3Client.getObject(new GetObjectRequest(bucket, dir + "/" + fileName));
             S3ObjectInputStream s3ObjectInputStream = s3Object.getObjectContent();
@@ -85,7 +90,7 @@ public class S3Service {
     }
 
     //db 구축 완료되면 테이블에 file_content_type 추가해서 업로드 시 저장해 놓고 그걸로 사용하기
-    public void setContentType(HttpHeaders httpHeaders, String contentType) {
+    public static void setContentType(HttpHeaders httpHeaders, String contentType) {
         if(contentType.contains("png")) {
             httpHeaders.set("Content-Type", "image/png");
         } else if(contentType.contains("jpeg")) {
@@ -105,7 +110,7 @@ public class S3Service {
         }
     }
 
-    public boolean checkFile(String contentType) {
+    public static boolean checkFile(String contentType) {
         if(contentType.contains("png") || contentType.contains("jpeg")
                 || contentType.contains("gif") || contentType.contains("bmp")
                 || contentType.contains("pdf") || contentType.contains("mp4")
