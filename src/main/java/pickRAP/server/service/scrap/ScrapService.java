@@ -14,15 +14,18 @@ import pickRAP.server.common.URLPreview;
 import pickRAP.server.controller.dto.scrap.*;
 import pickRAP.server.domain.category.Category;
 import pickRAP.server.domain.hashtag.Hashtag;
+import pickRAP.server.domain.magazine.MagazinePage;
 import pickRAP.server.domain.member.Member;
 import pickRAP.server.domain.scrap.Scrap;
 import pickRAP.server.domain.scrap.ScrapHashtag;
 import pickRAP.server.domain.scrap.ScrapType;
 import pickRAP.server.repository.category.CategoryRepository;
+import pickRAP.server.repository.magazine.MagazinePageRepository;
 import pickRAP.server.repository.member.MemberRepository;
 import pickRAP.server.repository.hashtag.HashtagRepository;
 import pickRAP.server.repository.scrap.ScrapHashtagRepository;
 import pickRAP.server.repository.scrap.ScrapRepository;
+import pickRAP.server.service.magazine.MagazineService;
 import pickRAP.server.service.text.TextService;
 
 import java.io.IOException;
@@ -46,6 +49,10 @@ public class ScrapService {
     private final MemberRepository memberRepository;
 
     private final TextService textService;
+
+    private final MagazinePageRepository magazinePageRepository;
+
+    private final MagazineService magazineService;
 
     public ScrapResponse findOne(Long id, String email) {
         if(Objects.isNull(id)) {
@@ -270,6 +277,8 @@ public class ScrapService {
             throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
         }
 
+        List<Long> magazinePageIds = magazinePageRepository.findByScrapId(id);
+        magazinePageIds.forEach(mp -> magazineService.deletePage(mp, email));
         deleteHashtag(id);
         deleteTextByScrap(scrap, member, false);
 
@@ -321,8 +330,9 @@ public class ScrapService {
     private void deleteHashtag(Long scrapId){
         List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrapId);
         for(ScrapHashtag scrapHashtag : scrapHashtags) {
-            hashtagRepository.delete(scrapHashtag.getHashtag());
+            Long hashtagId = scrapHashtag.getHashtag().getId();
             scrapHashtagRepository.delete(scrapHashtag);
+            hashtagRepository.deleteById(hashtagId);
         }
     }
 
