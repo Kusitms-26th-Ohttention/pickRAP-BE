@@ -321,8 +321,8 @@ public class ScrapService {
     private void deleteHashtag(Long scrapId){
         List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrapId);
         for(ScrapHashtag scrapHashtag : scrapHashtags) {
-            scrapHashtagRepository.delete(scrapHashtag);
             hashtagRepository.delete(scrapHashtag.getHashtag());
+            scrapHashtagRepository.delete(scrapHashtag);
         }
     }
 
