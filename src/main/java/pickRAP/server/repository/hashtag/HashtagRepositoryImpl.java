@@ -69,14 +69,20 @@ public class HashtagRepositoryImpl implements HashtagRepositoryCustom {
         }
 
         int sum = 0;
+        int rate = 100;
         for (HashTagResponse hashTagResponse : hashTagResponses) {
-            hashTagResponse.setRate(getRate(hashTagResponse.getCount(), total));
             sum += hashTagResponse.getCount();
+            hashTagResponse.setRate(getRate(hashTagResponse.getCount(), total));
+            rate -= getRate(hashTagResponse.getCount(), total);
         }
 
         // 기타
         hashTagResponses.add(new HashTagResponse("기타", total-sum));
         hashTagResponses.get(hashTagResponses.size() - 1).setRate(getRate(total-sum, total));
+        rate -= getRate(total-sum, total);
+
+        HashTagResponse firstHashtag = hashTagResponses.get(0);
+        firstHashtag.setRate(firstHashtag.getRate() + rate);
 
         return hashTagResponses;
     }
