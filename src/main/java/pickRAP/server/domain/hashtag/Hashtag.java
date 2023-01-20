@@ -31,9 +31,10 @@ public class Hashtag extends BaseEntity {
         setMember(member);
     }
 
-    public void setMember(Member member) {
+    private void setMember(Member member) {
         this.member = member;
         member.getHashtags().add(this);
     }
+
 
 }
