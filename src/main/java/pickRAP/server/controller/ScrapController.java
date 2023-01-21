@@ -121,7 +121,8 @@ public class ScrapController {
     @ApiOperation(value = "스크랩 저장", notes = "로그인한 아이디에 스크랩 저장, ***scrapRequest의 scrapType은 IMAGE, VIDEO, PDF, TEXT, LINK***")
     @ApiResponses({
             @ApiResponse(responseCode = "400", description = "2006-필수값미입력(해시태그, 스크랩타입), " +
-                    "4001-지원하지않는파일, 4007-제목글자수초과, 4006-카테고리미존재, 4008-파일미존재(IMAGE, VIDEO, PDF), 4014-컨텐츠미입력(LINK, TEXT)"),
+                    "4001-지원하지않는파일, 4007-제목글자수초과, 4006-카테고리미존재, 4008-파일미존재(IMAGE, VIDEO, PDF)" +
+                    ", 4014-컨텐츠미입력(LINK, TEXT), 4016-파일컨텐츠타입불일치"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
     public ResponseEntity<BaseResponse> insertScrap(@RequestPart(value = "scrap_request") ScrapRequest scrapRequest,
