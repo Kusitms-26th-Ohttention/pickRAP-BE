@@ -37,6 +37,7 @@ public enum BaseExceptionStatus {
     DONT_EXIST_PATH(HttpStatus.BAD_REQUEST, 4013, "경로가 잘못되었습니다"),
     DONT_EXIST_CONTENT(HttpStatus.BAD_REQUEST, 4014, "컨텐츠를 입력해주세요"),
     CANT_UPDATE_CATE(HttpStatus.BAD_REQUEST, 4015, "기본 카테고리는 수정할 수 없습니다"),
+    DONT_MATCH_TYPE_FILE_SCRAP(HttpStatus.BAD_REQUEST, 4016, "파일과 컨텐츠의 타입이 일치하지 않습니다"),
 
     // 메거진
     EXCEED_PAGE_SIZE(HttpStatus.BAD_REQUEST, 5001, "매거진 페이지는 최대 20장까지 제작 가능합니다."),

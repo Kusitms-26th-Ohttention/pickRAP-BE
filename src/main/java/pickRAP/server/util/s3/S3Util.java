@@ -17,8 +17,6 @@ import pickRAP.server.common.BaseExceptionStatus;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import static pickRAP.server.config.s3.S3Config.amazonS3Client;
@@ -37,9 +35,9 @@ public class S3Util {
     private static final AmazonS3Client amazonS3Client = amazonS3Client();
 
     //단일 파일 올리기 (s3 파일 이름 반환)
-    public static String uploadFile(MultipartFile multipartFile, String dir) throws IOException {
+    public static String uploadFile(MultipartFile multipartFile, String dir, String scrapType) throws IOException {
         try {
-            if(!checkFile(multipartFile.getContentType().substring(multipartFile.getContentType().lastIndexOf("/")))) {
+            if(!checkFile(multipartFile.getContentType().substring(multipartFile.getContentType().lastIndexOf("/")), scrapType)) {
                 throw new BaseException(BaseExceptionStatus.NOT_SUPPORT_FILE);
             }
 
@@ -53,21 +51,9 @@ public class S3Util {
             amazonS3Client.putObject(new PutObjectRequest(bucket, fileName, inputStream, objectMetadata));
 
             return amazonS3Client.getUrl(bucket, fileName).toString();
-//            return fileName;
         } catch (IOException e) {
             throw new BaseException(BaseExceptionStatus.FILE_UPLOAD_FAIL);
         }
-    }
-
-    //다중 파일 올리기 (s3 파일 이름 리스트 반환)
-    public static List<String> uploadFiles(List<MultipartFile> multipartFiles, String dir) throws IOException {
-        List<String> fileNames = new ArrayList<>();
-
-        for(MultipartFile multipartFile : multipartFiles) {
-            fileNames.add(uploadFile(multipartFile, dir));
-        }
-
-        return fileNames;
     }
 
     //파일 가져와서 http 전송
@@ -110,15 +96,34 @@ public class S3Util {
         }
     }
 
-    public static boolean checkFile(String contentType) {
-        if(contentType.contains("png") || contentType.contains("jpeg")
-                || contentType.contains("gif") || contentType.contains("bmp")
-                || contentType.contains("pdf") || contentType.contains("mp4")
-                || contentType.contains("mov") || contentType.contains("webm")
+    public static boolean checkFile(String contentType, String scrapType) {
+        if (contentType.contains("png") || contentType.contains("jpeg")
+                || contentType.contains("gif") || contentType.contains("bmp")) {
+
+            if (scrapType.equals("image")) {
+                return true;
+            } else {
+                throw new BaseException(BaseExceptionStatus.DONT_MATCH_TYPE_FILE_SCRAP);
+            }
+        } else if (contentType.contains("pdf")) {
+
+            if (scrapType.equals("pdf")) {
+                return true;
+            } else {
+                throw new BaseException(BaseExceptionStatus.DONT_MATCH_TYPE_FILE_SCRAP);
+            }
+        } else if (contentType.contains("mp4") || contentType.contains("mov")
                 || contentType.contains("ogg") || contentType.contains("wmv")
                 || contentType.contains("avi") || contentType.contains("avchd")
-                || contentType.contains("mpeg") || contentType.contains("mkv")) {
-            return true;
+                || contentType.contains("mpeg") || contentType.contains("mkv")
+                || contentType.contains("webm")) {
+
+
+            if (scrapType.equals("video")) {
+                return true;
+            } else {
+                throw new BaseException(BaseExceptionStatus.DONT_MATCH_TYPE_FILE_SCRAP);
+            }
         } else {
             return false;
         }

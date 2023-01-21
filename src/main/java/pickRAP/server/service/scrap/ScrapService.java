@@ -214,7 +214,7 @@ public class ScrapService {
             if(multipartFile.isEmpty()) {
                 throw new BaseException(BaseExceptionStatus.DONT_EXIST_FILE);
             }
-            String fileUrl = uploadFile(multipartFile, "scrap");
+            String fileUrl = uploadFile(multipartFile, "scrap", scrapRequest.getScrapType());
             scrap = createFileScrap(scrapRequest, member, category, fileUrl);
 
         }
