@@ -45,7 +45,7 @@ public class ProfileController {
                                                      ) throws IOException {
         String profileImageUrl = "";
         if(!multipartFile.isEmpty()) {
-            profileImageUrl = uploadFile(multipartFile, "content");
+            profileImageUrl = uploadFile(multipartFile, "content", "image");
         }
 
         profileService.updateProfile(authService.getUserEmail(), request, profileImageUrl);
