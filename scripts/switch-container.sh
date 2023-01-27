@@ -2,6 +2,7 @@
 
 RUNNING_APPLICATION=$(docker ps | grep blue)
 DEFAULT_CONF="/home/ubuntu/pickrap-server/nginx/default.conf"
+docker-compose up --build -d nginx
 
 if [ -z "$RUNNING_APPLICATION"  ];then
   echo "blue Deploy..."
