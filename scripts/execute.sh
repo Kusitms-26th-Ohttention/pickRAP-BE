@@ -1,4 +1,4 @@
 #!/bin/bash
 
-cd /home/ubuntu/pickrap-server
+cd /home/pickrap/pickrap-server
 sh scripts/switch-container.sh
