@@ -9,11 +9,11 @@ files:
 permissions:
   - object: /
     pattern: "**"
-    owner: ec2-user
-    group: ec2-user
+    owner: pickrap
+    group: pickrap
 
 hooks:
   AfterInstall: # LifeCycle Event Hook의 이름을 의미
     - location: scripts/execute.sh # 스크립트의 위치. files.destination에 정의한 경로에 대한 상대경로롤 작성
       timeout: 600 # 실행 타임아웃. 최대 3600초
-      runas: ec2-user # 스크립트 실행 시 가장하는 사용자
+      runas: pickrap # 스크립트 실행 시 가장하는 사용자
