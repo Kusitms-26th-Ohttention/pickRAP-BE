@@ -7,6 +7,11 @@ on:
 
 permissions: write-all #테스트 결과 작성을 위해 쓰기권한 추가
 
+env: # deploy env
+  S3_BUCKET_NAME: pickrap-deploy
+  PROJECT_NAME: pickrap-server
+
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -44,25 +49,22 @@ jobs:
       - name: Build With Gradle
         run: ./gradlew build -x test
 
-      #도커 빌드 & 이미지 push
-      - name: Docker build & Push
-        run: |
-          docker login -u ${{ secrets.DOCKER_ID }} -p ${{ secrets.DOCKER_PASSWORD }}
-          docker build -f Dockerfile -t ${{ secrets.DOCKER_REPO }}/pickrap .
-          docker push ${{ secrets.DOCKER_REPO }}/pickrap
+      - name: Make a zip file
+        run: zip -r ./$GITHUB_SHA.zip .
+        shell: bash
 
-      #docker-compose 파일을 ec2 서버에 배포
-      - name: Deploy to Prod
-        uses: appleboy/ssh-action@master
-        id: deploy-prod
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
-          envs: GITHUB_SHA
-          script: |
-            docker stop pickrap
-            docker rm pickrap
-            sudo docker pull ${{ secrets.DOCKER_REPO }}/pickrap
-            docker run -d --name pickrap -p 8080:8080 ${{ secrets.DOCKER_REPO }}/pickrap
-            docker rmi -f $(docker images -f "dangling=true" -q)
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload to S3
+        run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.zip s3://$S3_BUCKET_NAME/$PROJECT_NAME/$GITHUB_SHA.zip
+
+      - name: Code Deploy
+        run: aws deploy create-deployment --application-name pickrap-deploy
+          --deployment-config-name CodeDeployDefault.AllAtOnce
+          --deployment-group-name develop
+          --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=$PROJECT_NAME/$GITHUB_SHA.zip
