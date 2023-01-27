@@ -35,7 +35,7 @@ services:
     volumes:
       - ./nginx:/etc/nginx/conf.d
       - /etc/letsencrypt:/etc/letsencrypt
-      - /var/log/nginx/web:/var/log/nginx/web
+      - /var/log/nginx/pickrap:/var/log/nginx/pickrap
     command:
       "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
     networks:
