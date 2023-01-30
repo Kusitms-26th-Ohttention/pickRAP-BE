@@ -8,15 +8,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.util.StringUtils;
+import pickRAP.server.controller.dto.analysis.QRevisitResponse;
+import pickRAP.server.controller.dto.analysis.RevisitResponse;
 import pickRAP.server.controller.dto.scrap.QScrapResponse;
 import pickRAP.server.controller.dto.scrap.ScrapFilterCondition;
 import pickRAP.server.controller.dto.scrap.ScrapResponse;
+import pickRAP.server.domain.scrap.Scrap;
 import pickRAP.server.domain.scrap.ScrapType;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 
 import static pickRAP.server.domain.category.QCategory.category;
+import static pickRAP.server.domain.member.QMember.member;
 import static pickRAP.server.domain.scrap.QScrap.*;
 import static pickRAP.server.domain.scrap.QScrapHashtag.scrapHashtag;
 
@@ -104,5 +109,24 @@ public class ScrapRepositoryImpl implements ScrapRepositoryCustom {
         } else {
             return null;
         }
+    }
+
+    @Override
+    public List<RevisitResponse> findByRevisitTimeAndRevisitCount(String email) {
+        // 스크랩 시기가 1개월이 지났고, 방문수가 3회 이하인 콘텐츠
+        return queryFactory
+                .select(new QRevisitResponse(scrap.id))
+                .from(scrap)
+                .join(scrap.member, member)
+                .where(
+                        member.email.eq(email),
+                        scrap.revisitTime.lt(LocalDateTime.now().minusMonths(1)),
+                        scrap.revisitCount.lt(4)
+                        )
+                .orderBy(
+                        scrap.revisitTime.asc(),
+                        scrap.revisitCount.asc()
+                )
+                .fetch();
     }
 }
