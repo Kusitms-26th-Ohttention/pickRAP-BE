@@ -29,6 +29,7 @@ import pickRAP.server.service.magazine.MagazineService;
 import pickRAP.server.service.text.TextService;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static pickRAP.server.util.s3.S3Util.uploadFile;
@@ -307,6 +308,8 @@ public class ScrapService {
                 .content(scrapRequest.getContent())
                 .memo(scrapRequest.getMemo())
                 .scrapType(ScrapType.valueOf(scrapRequest.getScrapType().toUpperCase(Locale.ROOT)))
+                .revisitTime(LocalDateTime.now())
+                .revisitCount(0L)
                 .build();
         scrap.setMember(member);
         scrap.setCategory(category);
@@ -320,6 +323,8 @@ public class ScrapService {
                 .memo(scrapRequest.getMemo())
                 .fileUrl(fileUrl)
                 .scrapType(ScrapType.valueOf(scrapRequest.getScrapType().toUpperCase(Locale.ROOT)))
+                .revisitTime(LocalDateTime.now())
+                .revisitCount(0L)
                 .build();
         scrap.setMember(member);
         scrap.setCategory(category);

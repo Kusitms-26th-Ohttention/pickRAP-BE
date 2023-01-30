@@ -32,7 +32,9 @@ public class Scrap extends BaseEntity {
 
     private String fileUrl;
 
-//    private LocalDateTime latestTime;
+    private LocalDateTime revisitTime;
+
+    private Long revisitCount;
 
     @Enumerated(EnumType.STRING)
     private ScrapType scrapType;
@@ -49,12 +51,15 @@ public class Scrap extends BaseEntity {
     private List<ScrapHashtag> scrapHashtags = new ArrayList<>();
 
     @Builder
-    public Scrap(String title, String content, String memo, String fileUrl, ScrapType scrapType) {
+    public Scrap(String title, String content, String memo, String fileUrl, ScrapType scrapType,
+                 LocalDateTime revisitTime, Long revisitCount) {
         this.title = title;
         this.content = content;
         this.memo = memo;
         this.fileUrl = fileUrl;
         this.scrapType = scrapType;
+        this.revisitTime = revisitTime;
+        this.revisitCount = revisitCount;
     }
 
     public void setMember(Member member) {
