@@ -76,4 +76,9 @@ public class Scrap extends BaseEntity {
         this.title = title;
         this.memo = memo;
     }
+
+    public void updateRevisitRecord() {
+        this.revisitCount++;
+        this.revisitTime = LocalDateTime.now();
+    }
 }
