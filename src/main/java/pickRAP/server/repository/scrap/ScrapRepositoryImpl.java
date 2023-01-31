@@ -115,7 +115,7 @@ public class ScrapRepositoryImpl implements ScrapRepositoryCustom {
     public List<RevisitResponse> findByRevisitTimeAndRevisitCount(String email) {
         // 스크랩 시기가 1개월이 지났고, 방문수가 3회 이하인 콘텐츠
         return queryFactory
-                .select(new QRevisitResponse(scrap.id))
+                .select(new QRevisitResponse(scrap.id, scrap.title))
                 .from(scrap)
                 .join(scrap.member, member)
                 .where(
