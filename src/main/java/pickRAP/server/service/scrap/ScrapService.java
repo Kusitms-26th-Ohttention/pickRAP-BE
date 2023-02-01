@@ -94,7 +94,7 @@ public class ScrapService {
         return scrapResponse;
     }
 
-    public int compareToRevisitDay(LocalDateTime lastedRevisitTime) {
+    private int compareToRevisitDay(LocalDateTime lastedRevisitTime) {
         // 일 단위 비교
         lastedRevisitTime = lastedRevisitTime
                 .truncatedTo(ChronoUnit.DAYS);
