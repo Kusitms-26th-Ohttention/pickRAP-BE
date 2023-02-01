@@ -1,7 +1,7 @@
 # !/bin/bash
 
 RUNNING_APPLICATION=$(docker ps | grep blue)
-DEFAULT_CONF="/home/ubuntu/pickrap-server/nginx/default.conf"
+DEFAULT_CONF="/home/pickrap/pickrap-server/nginx/default.conf"
 
 if [ -z "$RUNNING_APPLICATION"  ];then
   echo "blue Deploy..."

@@ -29,6 +29,8 @@ import pickRAP.server.service.magazine.MagazineService;
 import pickRAP.server.service.text.TextService;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static pickRAP.server.util.s3.S3Util.uploadFile;
@@ -54,6 +56,7 @@ public class ScrapService {
 
     private final MagazineService magazineService;
 
+    @Transactional
     public ScrapResponse findOne(Long id, String email) {
         if(Objects.isNull(id)) {
             throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
@@ -84,7 +87,25 @@ public class ScrapService {
             scrapResponse.getHashtags().add(scrapHashtag.getHashtag().getTag());
         }
 
+        if(compareToRevisitDay(scrap.getRevisitTime()) == 1) {
+            scrap.updateRevisitRecord();
+        }
+
         return scrapResponse;
+    }
+
+    private int compareToRevisitDay(LocalDateTime lastedRevisitTime) {
+        // 일 단위 비교
+        lastedRevisitTime = lastedRevisitTime
+                .truncatedTo(ChronoUnit.DAYS);
+        LocalDateTime today = LocalDateTime.now()
+                .truncatedTo(ChronoUnit.DAYS);
+
+        if(lastedRevisitTime.compareTo(today) != 0) {
+            // 재방문 날짜가 오늘이 아니라면
+            return 1;
+        }
+        return 0;
     }
 
     public Slice<ScrapResponse> searchPageScraps(String searchKeyword, String orderKeyword, String email, Pageable pageable) {
@@ -307,6 +328,8 @@ public class ScrapService {
                 .content(scrapRequest.getContent())
                 .memo(scrapRequest.getMemo())
                 .scrapType(ScrapType.valueOf(scrapRequest.getScrapType().toUpperCase(Locale.ROOT)))
+                .revisitTime(LocalDateTime.now())
+                .revisitCount(1L)
                 .build();
         scrap.setMember(member);
         scrap.setCategory(category);
@@ -320,6 +343,8 @@ public class ScrapService {
                 .memo(scrapRequest.getMemo())
                 .fileUrl(fileUrl)
                 .scrapType(ScrapType.valueOf(scrapRequest.getScrapType().toUpperCase(Locale.ROOT)))
+                .revisitTime(LocalDateTime.now())
+                .revisitCount(1L)
                 .build();
         scrap.setMember(member);
         scrap.setCategory(category);

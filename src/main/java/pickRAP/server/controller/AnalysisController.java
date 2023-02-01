@@ -12,9 +12,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pickRAP.server.common.BaseResponse;
 import pickRAP.server.controller.dto.analysis.AnalysisResponse;
+import pickRAP.server.controller.dto.analysis.RevisitResponse;
 import pickRAP.server.service.auth.AuthService;
 import pickRAP.server.service.hashtag.HashtagService;
+import pickRAP.server.service.scrap.RevisitScrapService;
 import pickRAP.server.service.text.TextService;
+
+import java.util.List;
 
 
 @Slf4j
@@ -26,6 +30,7 @@ public class AnalysisController {
     private final AuthService authService;
     private final HashtagService hashtagService;
     private final TextService textService;
+    private final RevisitScrapService revisitScrapService;
 
     @GetMapping
     @ApiOperation(value = "분석", notes = "해시태그 분석 & 텍스트 분석<br>" +
@@ -47,7 +52,21 @@ public class AnalysisController {
 
         // 텍스트 분석
         analysisResponse.setTexts(textService.getTextAnalysisResults(email));
-
         return ResponseEntity.ok(new BaseResponse(analysisResponse));
+    }
+
+    @GetMapping("/revisit")
+    @ApiOperation(value = "재방문 컨텐츠", notes = "재방문 컨텐츠 제공<br>" +
+            "parameter 설명<br>" +
+            "- filter : all(전체 목록), top(top3)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "500", description = "서버 예외")
+    })
+    public ResponseEntity<BaseResponse<List<RevisitResponse>>> getTop3RevisitContents(@RequestParam("filter") String filter) {
+        String email = authService.getUserEmail();
+
+        List<RevisitResponse> revisitResponses = revisitScrapService.getRevisitContents(email, filter);
+
+        return ResponseEntity.ok(new BaseResponse(revisitResponses));
     }
 }
