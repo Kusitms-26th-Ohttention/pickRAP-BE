@@ -20,8 +20,9 @@ if [ -z "$RUNNING_APPLICATION"  ];then
       done;
 
     sed -i 's/green/blue/g' $DEFAULT_CONF
-    sudo docker exec -d nginx-container nginx -s reload
-    echo "> docker exec -it nginx-container nginx -s reload"
+    # sudo docker exec -d nginx-container nginx -s reload
+    docker restart nginx-container
+    echo "> docker restart nginx-container"
 
     docker-compose stop green
     docker image prune -af # 사용하지 않는 이미지 삭제
@@ -42,8 +43,9 @@ else
   	done;
 
     sed -i 's/blue/green/g' $DEFAULT_CONF
-    sudo docker exec -d nginx-container nginx -s reload
-    echo "> docker exec -it nginx-container nginx -s reload"
+    # sudo docker exec -d nginx-container nginx -s reload
+    docker restart nginx-container
+    echo "> docker restart nginx-container"
 
   	docker-compose stop blue
   	docker image prune -af # 사용하지 않는 이미지 삭제
