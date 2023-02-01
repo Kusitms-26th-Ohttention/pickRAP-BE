@@ -89,7 +89,6 @@ public class ScrapService {
 
         if(compareToRevisitDay(scrap.getRevisitTime()) == 1) {
             scrap.updateRevisitRecord();
-            scrapRepository.save(scrap);
         }
 
         return scrapResponse;
