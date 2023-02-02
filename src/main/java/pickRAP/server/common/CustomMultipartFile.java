@@ -1,4 +1,4 @@
-package pickRAP.server.util.preview;
+package pickRAP.server.common;
 
 import org.springframework.web.multipart.MultipartFile;
 
