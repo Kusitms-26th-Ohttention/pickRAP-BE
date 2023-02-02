@@ -265,7 +265,7 @@ public class ScrapServiceTest {
                 () -> scrapService.save(scrapRequest, null, member.getEmail()));
 
         //then
-        assertThat(e.getStatus()).isEqualTo(DONT_EXIST_CONTENT);
+        assertThat(e.getStatus()).isEqualTo(EMPTY_INPUT_VALUE);
     }
 
     @Test
