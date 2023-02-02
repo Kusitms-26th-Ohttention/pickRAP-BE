@@ -20,15 +20,16 @@ public class CategoryScrapResponse {
     @JsonProperty("file_url")
     private String fileUrl;
 
-    @JsonProperty("url_preview")
-    private String urlPreview;
+    @JsonProperty("preview_url")
+    private String previewUrl;
 
     @Builder
-    public CategoryScrapResponse(Long id, String name, String scrapType, String content, String fileUrl) {
+    public CategoryScrapResponse(Long id, String name, String scrapType, String content, String fileUrl, String previewUrl) {
         this.id = id;
         this.name = name;
         this.scrapType = scrapType;
         this.content = content;
         this.fileUrl = fileUrl;
+        this.previewUrl = previewUrl;
     }
 }
