@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseExceptionStatus;
-import pickRAP.server.common.URLPreview;
 import pickRAP.server.controller.dto.magazine.*;
 import pickRAP.server.domain.magazine.Magazine;
 import pickRAP.server.domain.magazine.MagazinePage;
@@ -95,11 +94,13 @@ public class MagazineService {
                 magazinePages.add(MagazinePageResponse.builder()
                         .pageId(p.getId())
                         .fileUrl(p.getScrap().getFileUrl())
+                        .previewUrl(p.getScrap().getPreviewUrl())
                         .text(p.getText()).build());
             } else if (p.getScrap().getScrapType() == ScrapType.LINK) {
                 magazinePages.add(MagazinePageResponse.builder()
                         .pageId(p.getId())
-                        .contents(URLPreview.getLinkPreviewInfo(p.getScrap().getContent()))
+                        .previewUrl(p.getScrap().getPreviewUrl())
+                        .contents(p.getScrap().getContent())
                         .text(p.getText()).build());
             } else {
                 magazinePages.add(MagazinePageResponse.builder()

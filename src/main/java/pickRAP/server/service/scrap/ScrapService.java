@@ -10,11 +10,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseExceptionStatus;
-import pickRAP.server.common.URLPreview;
 import pickRAP.server.controller.dto.scrap.*;
 import pickRAP.server.domain.category.Category;
 import pickRAP.server.domain.hashtag.Hashtag;
-import pickRAP.server.domain.magazine.MagazinePage;
 import pickRAP.server.domain.member.Member;
 import pickRAP.server.domain.scrap.Scrap;
 import pickRAP.server.domain.scrap.ScrapHashtag;
@@ -28,11 +26,11 @@ import pickRAP.server.repository.scrap.ScrapRepository;
 import pickRAP.server.service.magazine.MagazineService;
 import pickRAP.server.service.text.TextService;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+import static pickRAP.server.util.preview.PreviewUtil.*;
 import static pickRAP.server.util.s3.S3Util.uploadFile;
 
 @Slf4j
@@ -58,16 +56,12 @@ public class ScrapService {
 
     @Transactional
     public ScrapResponse findOne(Long id, String email) {
-        if(Objects.isNull(id)) {
-            throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
-        }
+        emptyScrapId(id);
 
         Member member = memberRepository.findByEmail(email).orElseThrow();
         Scrap scrap = scrapRepository.findById(id)
                 .orElseThrow(() -> new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP));
-        if(!scrap.getMember().equals(member)) {
-            throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
-        }
+        dontExistScrap(scrap, member);
         List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrap.getId());
 
         ScrapResponse scrapResponse = ScrapResponse.builder()
@@ -79,10 +73,8 @@ public class ScrapService {
                 .scrapType(scrap.getScrapType().toString().toLowerCase(Locale.ROOT))
                 .category(scrap.getCategory().getName())
                 .createTime(scrap.getCreateTime())
+                .previewUrl(scrap.getPreviewUrl())
                 .build();
-        if(scrap.getScrapType().equals(ScrapType.LINK)) {
-            scrapResponse.setUrlPreview(URLPreview.getLinkPreviewInfo(scrap.getContent()));
-        }
         for(ScrapHashtag scrapHashtag : scrapHashtags) {
             scrapResponse.getHashtags().add(scrapHashtag.getHashtag().getTag());
         }
@@ -109,17 +101,12 @@ public class ScrapService {
     }
 
     public Slice<ScrapResponse> searchPageScraps(String searchKeyword, String orderKeyword, String email, Pageable pageable) {
-        if(!StringUtils.hasText(orderKeyword)) {
-            throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
-        }
+        emptySearchKeyword(searchKeyword);
+        emptyOrderKeyword(orderKeyword);
 
         Member member = memberRepository.findByEmail(email).orElseThrow();
         Slice<ScrapResponse> scrapResponses = null;
         ScrapFilterCondition scrapFilterCondition;
-
-        if(!StringUtils.hasText(searchKeyword)) {
-            throw new BaseException(BaseExceptionStatus.DONT_EXIST_KEYWORD);
-        }
 
         scrapFilterCondition = ScrapFilterCondition.builder()
                 .searchKeyword(searchKeyword)
@@ -139,10 +126,6 @@ public class ScrapService {
 
         //로직 고민
         for(ScrapResponse scrapResponse : scrapResponses) {
-            if(scrapResponse.getScrapType().equals("link")) {
-                scrapResponse.setUrlPreview(URLPreview.getLinkPreviewInfo(scrapResponse.getContent()));
-            }
-
             List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrapResponse.getId());
 
             for(ScrapHashtag scrapHashtag : scrapHashtags) {
@@ -154,9 +137,7 @@ public class ScrapService {
     }
 
     public Slice<ScrapResponse> filterTypePageScraps(String filter, String orderKeyword, String email, Pageable pageable) {
-        if(!StringUtils.hasText(orderKeyword)) {
-            throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
-        }
+        emptyOrderKeyword(orderKeyword);
 
         Member member = memberRepository.findByEmail(email).orElseThrow();
         Slice<ScrapResponse> scrapResponses = null;
@@ -181,10 +162,6 @@ public class ScrapService {
 
         //로직 고민
         for(ScrapResponse scrapResponse : scrapResponses) {
-            if(scrapResponse.getScrapType().equals("link")) {
-                scrapResponse.setUrlPreview(URLPreview.getLinkPreviewInfo(scrapResponse.getContent()));
-            }
-
             List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrapResponse.getId());
 
             for(ScrapHashtag scrapHashtag : scrapHashtags) {
@@ -196,14 +173,10 @@ public class ScrapService {
     }
 
     @Transactional
-    public void save(ScrapRequest scrapRequest, MultipartFile multipartFile, String email) throws IOException {
-        if(scrapRequest.getHashtags().isEmpty()
-                || !StringUtils.hasText(scrapRequest.getScrapType())) {
-            throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
-        }
-        if(StringUtils.hasText(scrapRequest.getTitle()) && scrapRequest.getTitle().length() > 15) {
-            throw new BaseException(BaseExceptionStatus.SCRAP_TITLE_LONG);
-        }
+    public void save(ScrapRequest scrapRequest, MultipartFile multipartFile, String email) {
+        emptyStringValue(scrapRequest.getScrapType());
+        emptyHashtag(scrapRequest.getHashtags());
+        scrapTitleLong(scrapRequest.getTitle());
 
         Member member = memberRepository.findByEmail(email).orElseThrow();
         Category category;
@@ -219,24 +192,35 @@ public class ScrapService {
         }
 
         Scrap scrap = Scrap.builder().build();
+        String previewUrl = null;
 
-        if(scrapRequest.getScrapType().equals("text")
-                || scrapRequest.getScrapType().equals("link")) {
+        if(scrapRequest.getScrapType().equals("text")) {
 
-            if(!StringUtils.hasText(scrapRequest.getContent())) {
-                throw new BaseException(BaseExceptionStatus.DONT_EXIST_CONTENT);
-            }
-            scrap = createContentScrap(scrapRequest, member, category);
+            emptyStringValue(scrapRequest.getContent());
+            scrap = createContentScrap(scrapRequest, member, category, previewUrl);
 
-        } else if(scrapRequest.getScrapType().equals("image")
-                || scrapRequest.getScrapType().equals("video")
-                || scrapRequest.getScrapType().equals("pdf")) {
+        } else if(scrapRequest.getScrapType().equals("link")) {
 
-            if(multipartFile.isEmpty()) {
-                throw new BaseException(BaseExceptionStatus.DONT_EXIST_FILE);
-            }
-            String fileUrl = uploadFile(multipartFile, "scrap", scrapRequest.getScrapType());
-            scrap = createFileScrap(scrapRequest, member, category, fileUrl);
+            emptyStringValue(scrapRequest.getContent());
+            previewUrl = createLinkPreview(scrapRequest.getContent());
+            scrap = createContentScrap(scrapRequest, member, category, previewUrl);
+
+        } else if(scrapRequest.getScrapType().equals("pdf")) {
+
+            emptyFile(multipartFile);
+            previewUrl = createPdfPreview(multipartFile);
+            scrap = createFileScrap(scrapRequest, member, category, multipartFile, previewUrl);
+
+        } else if(scrapRequest.getScrapType().equals("video")) {
+
+            emptyFile(multipartFile);
+            previewUrl = createVideoPreview(multipartFile);
+            scrap = createFileScrap(scrapRequest, member, category, multipartFile, previewUrl);
+
+        } else if(scrapRequest.getScrapType().equals("image")) {
+
+            emptyFile(multipartFile);
+            scrap = createFileScrap(scrapRequest, member, category, multipartFile, previewUrl);
 
         }
 
@@ -250,28 +234,20 @@ public class ScrapService {
 
     @Transactional
     public void update(ScrapUpdateRequest scrapUpdateRequest, String email) {
-        if(scrapUpdateRequest.getHashtags().isEmpty()) {
-            throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
-        }
-        if(StringUtils.hasText(scrapUpdateRequest.getTitle()) && scrapUpdateRequest.getTitle().length() > 15) {
-            throw new BaseException(BaseExceptionStatus.SCRAP_TITLE_LONG);
-        }
+        emptyHashtag(scrapUpdateRequest.getHashtags());
+        scrapTitleLong(scrapUpdateRequest.getTitle());
 
         Member member = memberRepository.findByEmail(email).orElseThrow();
         Scrap scrap = scrapRepository.findById(scrapUpdateRequest.getId())
                 .orElseThrow(() -> new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP));
-        if(!scrap.getMember().equals(member)) {
-            throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
-        }
+        dontExistScrap(scrap, member);
 
         deleteTextByScrap(scrap, member, true);
+        deleteHashtag(scrapUpdateRequest.getId());
 
         scrap.updateScrap(scrapUpdateRequest.getTitle(), scrapUpdateRequest.getMemo());
 
         saveTextByScrap(scrap, member, true);
-
-        deleteHashtag(scrapUpdateRequest.getId());
-
         List<String> hashtags = scrapUpdateRequest.getHashtags();
         saveScrapHashTag(hashtags, scrap, member);
     }
@@ -294,9 +270,7 @@ public class ScrapService {
         Scrap scrap = scrapRepository.findById(id)
                 .orElseThrow(() -> new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP));
 
-        if(!scrap.getMember().equals(member)) {
-            throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
-        }
+        dontExistScrap(scrap, member);
 
         List<Long> magazinePageIds = magazinePageRepository.findByScrapId(id);
         magazinePageIds.forEach(mp -> magazineService.deletePage(mp, email));
@@ -322,7 +296,7 @@ public class ScrapService {
         return hashtags;
     }
 
-    private Scrap createContentScrap(ScrapRequest scrapRequest, Member member, Category category) {
+    private Scrap createContentScrap(ScrapRequest scrapRequest, Member member, Category category, String previewUrl) {
         Scrap scrap = Scrap.builder()
                 .title(scrapRequest.getTitle())
                 .content(scrapRequest.getContent())
@@ -330,6 +304,7 @@ public class ScrapService {
                 .scrapType(ScrapType.valueOf(scrapRequest.getScrapType().toUpperCase(Locale.ROOT)))
                 .revisitTime(LocalDateTime.now())
                 .revisitCount(1L)
+                .previewUrl(previewUrl)
                 .build();
         scrap.setMember(member);
         scrap.setCategory(category);
@@ -337,7 +312,8 @@ public class ScrapService {
         return scrap;
     }
 
-    private Scrap createFileScrap(ScrapRequest scrapRequest, Member member, Category category, String fileUrl) {
+    private Scrap createFileScrap(ScrapRequest scrapRequest, Member member, Category category, MultipartFile multipartFile, String previewUrl) {
+        String fileUrl = uploadFile(multipartFile, "scrap", scrapRequest.getScrapType());
         Scrap scrap = Scrap.builder()
                 .title(scrapRequest.getTitle())
                 .memo(scrapRequest.getMemo())
@@ -345,6 +321,7 @@ public class ScrapService {
                 .scrapType(ScrapType.valueOf(scrapRequest.getScrapType().toUpperCase(Locale.ROOT)))
                 .revisitTime(LocalDateTime.now())
                 .revisitCount(1L)
+                .previewUrl(previewUrl)
                 .build();
         scrap.setMember(member);
         scrap.setCategory(category);
@@ -372,6 +349,55 @@ public class ScrapService {
         textService.delete(member, scrap.getMemo());
         if (scrap.getScrapType() == ScrapType.TEXT && !update) {
             textService.delete(member, scrap.getContent());
+        }
+    }
+
+    //예외처리 메소드
+    private void dontExistScrap(Scrap scrap, Member member) {
+        if(!scrap.getMember().equals(member)) {
+            throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
+        }
+    }
+
+    private void scrapTitleLong(String title) {
+        if(StringUtils.hasText(title) && title.length() > 15) {
+            throw new BaseException(BaseExceptionStatus.SCRAP_TITLE_LONG);
+        }
+    }
+
+    private void emptyOrderKeyword(String orderKeyword) {
+        if(!StringUtils.hasText(orderKeyword)) {
+            throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
+        }
+    }
+
+    private void emptySearchKeyword(String searchKeyword) {
+        if(!StringUtils.hasText(searchKeyword)) {
+            throw new BaseException(BaseExceptionStatus.DONT_EXIST_KEYWORD);
+        }
+    }
+
+    private void emptyHashtag(List<String> hashtags) {
+        if(hashtags.isEmpty()) {
+            throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
+        }
+    }
+
+    private void emptyScrapId(Long id) {
+        if(Objects.isNull(id)) {
+            throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
+        }
+    }
+
+    private void emptyStringValue(String type) {
+        if(!StringUtils.hasText(type)) {
+            throw new BaseException(BaseExceptionStatus.EMPTY_INPUT_VALUE);
+        }
+    }
+
+    private void emptyFile(MultipartFile multipartFile) {
+        if(multipartFile.isEmpty()) {
+            throw new BaseException(BaseExceptionStatus.DONT_EXIST_FILE);
         }
     }
 }
