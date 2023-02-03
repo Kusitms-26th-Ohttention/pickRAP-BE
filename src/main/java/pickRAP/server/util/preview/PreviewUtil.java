@@ -16,8 +16,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.marvinproject.image.transform.scale.Scale;
 import org.springframework.web.multipart.MultipartFile;
-import pickRAP.server.common.BaseException;
-import pickRAP.server.common.BaseExceptionStatus;
 import pickRAP.server.common.CustomMultipartFile;
 
 import javax.imageio.ImageIO;
@@ -44,9 +42,9 @@ public class PreviewUtil {
             return getMetaTagContent(document, "meta[property=og:image]");
         } catch (IOException ex) {
             log.error("Unable to connect to : {}", url);
-        }
 
-        return null;
+            return null;
+        }
     }
 
     public static String createPdfPreview(MultipartFile multipartFile) {
@@ -59,13 +57,16 @@ public class PreviewUtil {
 
             return uploadFile(resizedFile, "preview", "image");
         } catch (IOException e) {
-            throw new BaseException(BaseExceptionStatus.CANT_MAKE_PREVIEW);
+            log.error("error message : {}", e.getMessage());
+
+            return null;
         }
     }
 
     public static String createVideoPreview(MultipartFile multipartFile) {
+        File file = transferToFile(multipartFile);
+
         try {
-            File file = transferToFile(multipartFile);
             Picture picture = FrameGrab.getFrameFromFile(file, 0);
 
             BufferedImage bufferedImage = AWTUtil.toBufferedImage(picture);
@@ -75,7 +76,12 @@ public class PreviewUtil {
 
             return uploadFile(resizedFile, "preview", "image");
         } catch (IOException|JCodecException e) {
-            throw new BaseException(BaseExceptionStatus.CANT_MAKE_PREVIEW);
+            if (file != null) {
+                file.delete();
+            }
+            log.error("error message : {}", e.getMessage());
+
+            return null;
         }
     }
 
@@ -108,7 +114,9 @@ public class PreviewUtil {
                     , "image/jpeg", byteArrayOutputStream.toByteArray().length);
 
         } catch (IOException e) {
-            throw new BaseException(BaseExceptionStatus.CANT_RESIZE_IMAGE);
+            log.error("error message : {}", e.getMessage());
+
+            return null;
         }
     }
 
@@ -123,7 +131,9 @@ public class PreviewUtil {
 
             return file;
         } catch (IOException e) {
-            throw new BaseException(BaseExceptionStatus.CANT_MAKE_PREVIEW);
+            log.error("error message : {}", e.getMessage());
+
+            return null;
         }
     }
 }
