@@ -55,6 +55,10 @@ public class PreviewUtil {
             BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 300, ImageType.RGB);
             MultipartFile resizedFile = resizeImage(multipartFile.getOriginalFilename(), bufferedImage, 1000);
 
+            if (resizedFile == null) {
+                return null;
+            }
+
             return uploadFile(resizedFile, "preview", "image");
         } catch (IOException e) {
             log.error("error message : {}", e.getMessage());
@@ -73,6 +77,10 @@ public class PreviewUtil {
             MultipartFile resizedFile = resizeImage(multipartFile.getOriginalFilename(), bufferedImage, 1000);
 
             file.delete();
+
+            if (resizedFile == null) {
+                return null;
+            }
 
             return uploadFile(resizedFile, "preview", "image");
         } catch (IOException|JCodecException e) {
