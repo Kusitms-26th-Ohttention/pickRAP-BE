@@ -32,9 +32,7 @@ public class S3Util {
     //단일 파일 올리기 (s3 파일 이름 반환)
     public static String uploadFile(MultipartFile multipartFile, String dir, String scrapType) {
         try {
-            if(!checkFile(multipartFile.getContentType().substring(multipartFile.getContentType().lastIndexOf("/")), scrapType)) {
-                throw new BaseException(BaseExceptionStatus.NOT_SUPPORT_FILE);
-            }
+            checkFile(multipartFile.getContentType(), scrapType);
 
             ObjectMetadata objectMetadata = new ObjectMetadata();
             objectMetadata.setContentType(multipartFile.getContentType());
@@ -51,36 +49,21 @@ public class S3Util {
         }
     }
 
-    public static boolean checkFile(String contentType, String scrapType) {
-        if (contentType.contains("png") || contentType.contains("jpeg")
-                || contentType.contains("gif") || contentType.contains("bmp")) {
-
-            if (scrapType.equals("image")) {
-                return true;
-            } else {
+    public static void checkFile(String contentType, String scrapType) {
+        if (contentType.contains("image")) {
+            if (!scrapType.equals("image")) {
+                throw new BaseException(BaseExceptionStatus.DONT_MATCH_TYPE_FILE_SCRAP);
+            }
+        } else if (contentType.contains("video")) {
+            if (!scrapType.equals("video")) {
                 throw new BaseException(BaseExceptionStatus.DONT_MATCH_TYPE_FILE_SCRAP);
             }
         } else if (contentType.contains("pdf")) {
-
-            if (scrapType.equals("pdf")) {
-                return true;
-            } else {
-                throw new BaseException(BaseExceptionStatus.DONT_MATCH_TYPE_FILE_SCRAP);
-            }
-        } else if (contentType.contains("mp4") || contentType.contains("mov")
-                || contentType.contains("ogg") || contentType.contains("wmv")
-                || contentType.contains("avi") || contentType.contains("avchd")
-                || contentType.contains("mpeg") || contentType.contains("mkv")
-                || contentType.contains("webm")) {
-
-
-            if (scrapType.equals("video")) {
-                return true;
-            } else {
+            if (!scrapType.equals("pdf")) {
                 throw new BaseException(BaseExceptionStatus.DONT_MATCH_TYPE_FILE_SCRAP);
             }
         } else {
-            return false;
+            throw new BaseException(BaseExceptionStatus.NOT_SUPPORT_FILE);
         }
     }
 }
