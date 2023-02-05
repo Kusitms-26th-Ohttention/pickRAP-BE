@@ -36,6 +36,8 @@ public class Scrap extends BaseEntity {
 
     private Long revisitCount;
 
+    private String previewUrl;
+
     @Enumerated(EnumType.STRING)
     private ScrapType scrapType;
 
@@ -52,7 +54,7 @@ public class Scrap extends BaseEntity {
 
     @Builder
     public Scrap(String title, String content, String memo, String fileUrl, ScrapType scrapType,
-                 LocalDateTime revisitTime, Long revisitCount) {
+                 LocalDateTime revisitTime, Long revisitCount, String previewUrl) {
         this.title = title;
         this.content = content;
         this.memo = memo;
@@ -60,6 +62,7 @@ public class Scrap extends BaseEntity {
         this.scrapType = scrapType;
         this.revisitTime = revisitTime;
         this.revisitCount = revisitCount;
+        this.previewUrl = previewUrl;
     }
 
     public void setMember(Member member) {

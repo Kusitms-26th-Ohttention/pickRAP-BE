@@ -13,12 +13,10 @@ import pickRAP.server.controller.dto.analysis.RevisitResponse;
 import pickRAP.server.controller.dto.scrap.QScrapResponse;
 import pickRAP.server.controller.dto.scrap.ScrapFilterCondition;
 import pickRAP.server.controller.dto.scrap.ScrapResponse;
-import pickRAP.server.domain.scrap.Scrap;
 import pickRAP.server.domain.scrap.ScrapType;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Locale;
 
 import static pickRAP.server.domain.category.QCategory.category;
 import static pickRAP.server.domain.member.QMember.member;
@@ -41,7 +39,8 @@ public class ScrapRepositoryImpl implements ScrapRepositoryCustom {
                         scrap.fileUrl.as("fileUrl"),
                         scrap.scrapType.stringValue().toLowerCase(),
                         category.name,
-                        scrap.createTime))
+                        scrap.createTime,
+                        scrap.previewUrl.as("previewUrl")))
                 .distinct()
                 .from(scrap)
                 .leftJoin(scrap.category, category)
@@ -115,7 +114,13 @@ public class ScrapRepositoryImpl implements ScrapRepositoryCustom {
     public List<RevisitResponse> findByRevisitTimeAndRevisitCount(String email) {
         // 스크랩 시기가 1개월이 지났고, 방문수가 3회 이하인 콘텐츠
         return queryFactory
-                .select(new QRevisitResponse(scrap.id, scrap.title))
+                .select(new QRevisitResponse(
+                        scrap.id,
+                        scrap.scrapType.stringValue().toLowerCase(),
+                        scrap.previewUrl.as("previewUrl"),
+                        scrap.fileUrl.as("fileUrl"),
+                        scrap.content,
+                        scrap.title))
                 .from(scrap)
                 .join(scrap.member, member)
                 .where(

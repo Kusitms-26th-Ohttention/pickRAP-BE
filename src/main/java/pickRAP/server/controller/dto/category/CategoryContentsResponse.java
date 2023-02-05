@@ -28,8 +28,8 @@ public class CategoryContentsResponse {
         private Long scrapId;
         @JsonProperty(value="content")
         private String content;
-        @JsonProperty(value="url_preview")
-        private String urlPreview;
+        @JsonProperty(value="preview_url")
+        private String previewUrl;
         @JsonProperty(value="file_url")
         private String fileUrl;
         @JsonProperty(value="scrap_type")
@@ -39,11 +39,11 @@ public class CategoryContentsResponse {
 
         @Builder
         public ScrapResponse(Long scrapId, String content,
-                             String urlPreview, String fileUrl,
+                             String previewUrl, String fileUrl,
                              ScrapType scrapType, String category) {
             this.scrapId = scrapId;
             this.content = content;
-            this.urlPreview = urlPreview;
+            this.previewUrl = previewUrl;
             this.fileUrl = fileUrl;
             this.scrapType = scrapType;
             this.category = category;

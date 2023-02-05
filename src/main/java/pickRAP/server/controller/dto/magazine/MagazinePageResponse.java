@@ -10,13 +10,16 @@ public class MagazinePageResponse {
     private Long pageId;
     @JsonProperty(value="file_url")
     private String fileUrl;
+    @JsonProperty(value = "preview_url")
+    private String previewUrl;
     private String contents;
     private String text;
 
     @Builder
-    public MagazinePageResponse(Long pageId, String fileUrl, String contents, String text) {
+    public MagazinePageResponse(Long pageId, String fileUrl, String previewUrl, String contents, String text) {
         this.pageId = pageId;
         this.fileUrl = fileUrl;
+        this.previewUrl = previewUrl;
         this.contents = contents;
         this.text = text;
     }
