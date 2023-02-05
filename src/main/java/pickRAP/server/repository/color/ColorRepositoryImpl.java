@@ -62,10 +62,20 @@ public class ColorRepositoryImpl implements ColorRepositoryCustom{
             return new ArrayList<>();
         }
 
-        return personalMoodResults
+        List<PersonalMoodResponse> personalMoodResponses = personalMoodResults
                 .stream()
                 .map(c -> new PersonalMoodResponse(c.getColorStyle().getValue(), c.getCount(), total))
                 .collect(Collectors.toList());
+
+        if (personalMoodResults.size() < 4) {
+            long rate = 100;
+            for (PersonalMoodResponse personalMoodResponse : personalMoodResponses) {
+                rate -= personalMoodResponse.getRate();
+            }
+            personalMoodResponses.get(0).plusRate(rate);
+        }
+
+        return personalMoodResponses;
     }
 
 
