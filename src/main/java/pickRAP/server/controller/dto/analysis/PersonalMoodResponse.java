@@ -21,5 +21,9 @@ public class PersonalMoodResponse {
         rate = (long) ((count/(double)total)*100);
     }
 
+    public void plusRate(long addRate) {
+        rate += addRate;
+    }
+
 
 }

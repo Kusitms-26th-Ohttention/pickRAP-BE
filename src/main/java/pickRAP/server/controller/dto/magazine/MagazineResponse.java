@@ -22,13 +22,16 @@ public class MagazineResponse {
     @JsonProperty(value="page_list")
     List<MagazinePageResponse> pageList;
 
+    private List<String> colors;
+
     @Builder
     public MagazineResponse(Long magazineId, String title, boolean openStatus,
-                            LocalDateTime createdDate, List<MagazinePageResponse> pageList) {
+                            LocalDateTime createdDate, List<MagazinePageResponse> pageList, List<String> colors) {
         this.magazineId = magazineId;
         this.title = title;
         this.openStatus = openStatus;
         this.createdDate = createdDate;
         this.pageList = pageList;
+        this.colors = colors;
     }
 }
