@@ -38,6 +38,8 @@ public enum BaseExceptionStatus {
     DONT_EXIST_CONTENT(HttpStatus.BAD_REQUEST, 4014, "컨텐츠를 입력해주세요"),
     CANT_UPDATE_CATE(HttpStatus.BAD_REQUEST, 4015, "기본 카테고리는 수정할 수 없습니다"),
     DONT_MATCH_TYPE_FILE_SCRAP(HttpStatus.BAD_REQUEST, 4016, "파일과 컨텐츠의 타입이 일치하지 않습니다"),
+    CANT_RESIZE_IMAGE(HttpStatus.BAD_REQUEST, 4017, "이미지 리사이징에 실패했습니다"),
+    CANT_MAKE_PREVIEW(HttpStatus.BAD_REQUEST, 4018, "컨텐츠 미리보기를 생성할 수 없습니다"),
 
     // 메거진
     EXCEED_PAGE_SIZE(HttpStatus.BAD_REQUEST, 5001, "매거진 페이지는 최대 20장까지 제작 가능합니다."),

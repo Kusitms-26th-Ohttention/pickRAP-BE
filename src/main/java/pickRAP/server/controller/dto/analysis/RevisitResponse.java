@@ -10,15 +10,26 @@ public class RevisitResponse {
     @JsonProperty("scrap_id")
     Long scrapId;
 
-    // TODO : preview 저장 추가 이후 update
-    // String preview;
+    @JsonProperty("scrap_type")
+    String scrapType;
+
+    @JsonProperty("preview_url")
+    String previewUrl;
+
+    @JsonProperty("file_url")
+    String fileUrl;
+
+    String content;
 
     String title;
 
     @QueryProjection
-    public RevisitResponse(Long scrapId, String title) {
+    public RevisitResponse(Long scrapId, String scrapType, String previewUrl, String fileUrl, String content, String title) {
         this.scrapId = scrapId;
-        // this.preview = preview;
+        this.scrapType = scrapType;
+        this.previewUrl = previewUrl;
+        this.fileUrl = fileUrl;
+        this.content = content;
         this.title = title;
     }
 }

@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseExceptionStatus;
-import pickRAP.server.common.URLPreview;
 import pickRAP.server.controller.dto.category.CategoryContentsResponse;
 import pickRAP.server.controller.dto.category.CategoryRequest;
 import pickRAP.server.controller.dto.category.CategoryResponse;
@@ -31,8 +30,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static pickRAP.server.domain.scrap.QScrap.scrap;
 
 @Slf4j
 @Service
@@ -107,11 +104,8 @@ public class CategoryService {
                         .scrapType(scrap.getScrapType().toString().toLowerCase(Locale.ROOT))
                         .content(scrap.getContent())
                         .fileUrl(scrap.getFileUrl())
+                        .previewUrl(scrap.getPreviewUrl())
                         .build();
-
-                if(scrap.getScrapType().equals(ScrapType.LINK)) {
-                    categoryScrapResponse.setUrlPreview(URLPreview.getLinkPreviewInfo(scrap.getContent()));
-                }
 
                 categoryScrapResponses.add(categoryScrapResponse);
             }
@@ -150,10 +144,6 @@ public class CategoryService {
 
         //로직 고민
         for(ScrapResponse scrapResponse : scrapResponses) {
-            if(scrapResponse.getScrapType().equals("link")) {
-                scrapResponse.setUrlPreview(URLPreview.getLinkPreviewInfo(scrapResponse.getContent()));
-            }
-
             List<ScrapHashtag> scrapHashtags = scrapHashtagRepository.findByScrapId(scrapResponse.getId());
 
             for(ScrapHashtag scrapHashtag : scrapHashtags) {
@@ -233,6 +223,7 @@ public class CategoryService {
 
                         scrapResponse.add(CategoryContentsResponse.ScrapResponse.builder()
                                 .scrapId(s.getId())
+                                .previewUrl(s.getPreviewUrl())
                                 .fileUrl(s.getFileUrl())
                                 .scrapType(s.getScrapType())
                                 .category(s.getCategory().getName())
@@ -241,7 +232,7 @@ public class CategoryService {
                         scrapResponse.add(CategoryContentsResponse.ScrapResponse.builder()
                                 .scrapId(s.getId())
                                 .content(s.getContent())
-                                .urlPreview(URLPreview.getLinkPreviewInfo(s.getContent()))
+                                .previewUrl(s.getPreviewUrl())
                                 .scrapType(s.getScrapType())
                                 .category(s.getCategory().getName())
                                 .build());

@@ -7,19 +7,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import pickRAP.server.common.BaseException;
-import pickRAP.server.common.BaseExceptionStatus;
 import pickRAP.server.common.BaseResponse;
 import pickRAP.server.controller.dto.scrap.*;
 import pickRAP.server.service.auth.AuthService;
 import pickRAP.server.service.scrap.ScrapService;
 
-import java.io.IOException;
 import java.util.List;
 
 import static pickRAP.server.common.BaseExceptionStatus.*;
@@ -102,32 +98,16 @@ public class ScrapController {
         return ResponseEntity.ok(new BaseResponse(scrapPageResponse));
     }
 
-//    @GetMapping("/{filter}")
-//    @ApiOperation(value = "스크랩 필터링 & 검색", notes = "(전체, 카테고리, 컨텐츠, 검색별로 스크랩 필터링) body는 category면 카테고리 category_id, " +
-//            "keyword는 search_keyword, 정렬은 order_keyword(desc는 최근생성, asc 오래된생성순)")
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "500", description = "서버 예외")
-//    })
-//    public ResponseEntity<BaseResponse<Slice<ScrapResponse>>> selectScraps(@ApiParam(value = "filter : image, video, text, link, pdf, category, all, keyword")
-//                                                                           @PathVariable("filter") String filter,
-//                                                                           @RequestBody(required = false) ScrapFilterRequest scrapFilterRequest,
-//                                                                           @PageableDefault(size = 10) Pageable pageable) {
-//        Slice<ScrapResponse> scrapResponses = scrapService.filterPageScraps(filter, scrapFilterRequest, authService.getUserEmail(), pageable);
-//
-//        return ResponseEntity.ok(new BaseResponse(scrapResponses));
-//    }
-
     @PostMapping
     @ApiOperation(value = "스크랩 저장", notes = "로그인한 아이디에 스크랩 저장, ***scrapRequest의 scrapType은 IMAGE, VIDEO, PDF, TEXT, LINK***")
     @ApiResponses({
             @ApiResponse(responseCode = "400", description = "2006-필수값미입력(해시태그, 스크랩타입), " +
                     "4001-지원하지않는파일, 4007-제목글자수초과, 4006-카테고리미존재, 4008-파일미존재(IMAGE, VIDEO, PDF)" +
-                    ", 4014-컨텐츠미입력(LINK, TEXT), 4016-파일컨텐츠타입불일치"),
+                    ", 4014-컨텐츠미입력(LINK, TEXT), 4016-파일컨텐츠타입불일치, 4017 & 4018-미리보기생성불가"),
             @ApiResponse(responseCode = "500", description = "서버 예외")
     })
     public ResponseEntity<BaseResponse> insertScrap(@RequestPart(value = "scrap_request") ScrapRequest scrapRequest,
-                                                    @RequestPart(value = "file", required = false) MultipartFile multipartFile)
-            throws IOException {
+                                                    @RequestPart(value = "file", required = false) MultipartFile multipartFile) {
         scrapService.save(scrapRequest, multipartFile, authService.getUserEmail());
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));

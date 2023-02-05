@@ -28,8 +28,8 @@ public class ScrapResponse {
     @JsonProperty("file_url")
     private String fileUrl;
 
-    @JsonProperty("url_preview")
-    private String urlPreview;
+    @JsonProperty("preview_url")
+    private String previewUrl;
 
     @JsonProperty("scrap_type")
     private String scrapType;
@@ -43,7 +43,7 @@ public class ScrapResponse {
 
     @Builder
     @QueryProjection
-    public ScrapResponse(Long id, String title, String content, String memo, String fileUrl, String scrapType, String category, LocalDateTime createTime) {
+    public ScrapResponse(Long id, String title, String content, String memo, String fileUrl, String scrapType, String category, LocalDateTime createTime, String previewUrl) {
         this.id = id;
         this.title = title;
         this.content = content;
@@ -52,5 +52,6 @@ public class ScrapResponse {
         this.scrapType = scrapType;
         this.category = category;
         this.createTime = createTime;
+        this.previewUrl = previewUrl;
     }
 }
