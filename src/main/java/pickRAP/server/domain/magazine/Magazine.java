@@ -36,6 +36,9 @@ public class Magazine extends BaseEntity {
     @OneToMany(mappedBy = "magazine", cascade = CascadeType.ALL)
     private List<MagazinePage> pages = new ArrayList<>();
 
+    @OneToMany(mappedBy = "magazine")
+    private List<Color> colors = new ArrayList<>();
+
     @Builder
     public Magazine (String title, boolean openStatus, Member member, String cover) {
         this.title = title;

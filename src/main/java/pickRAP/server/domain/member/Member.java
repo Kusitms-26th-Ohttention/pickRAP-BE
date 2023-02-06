@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import pickRAP.server.common.BaseEntity;
 import pickRAP.server.domain.category.Category;
 import pickRAP.server.domain.hashtag.Hashtag;
+import pickRAP.server.domain.magazine.Color;
 import pickRAP.server.domain.magazine.Magazine;
 import pickRAP.server.domain.scrap.Scrap;
 import pickRAP.server.domain.text.Text;
@@ -57,6 +58,9 @@ public class Member extends BaseEntity {
 
     @OneToMany(mappedBy = "member")
     private List<Text> texts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member")
+    private List<Color> colors = new ArrayList<>();
 
     @Builder
     public Member(String email, SocialType socialType, String password, String name, String profileImageUrl) {
