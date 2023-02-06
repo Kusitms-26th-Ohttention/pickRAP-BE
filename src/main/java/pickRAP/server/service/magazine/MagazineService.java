@@ -6,11 +6,14 @@ import org.springframework.transaction.annotation.Transactional;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseExceptionStatus;
 import pickRAP.server.controller.dto.magazine.*;
+import pickRAP.server.domain.magazine.Color;
+import pickRAP.server.domain.magazine.ColorType;
 import pickRAP.server.domain.magazine.Magazine;
 import pickRAP.server.domain.magazine.MagazinePage;
 import pickRAP.server.domain.member.Member;
 import pickRAP.server.domain.scrap.Scrap;
 import pickRAP.server.domain.scrap.ScrapType;
+import pickRAP.server.repository.color.ColorRepository;
 import pickRAP.server.repository.magazine.MagazinePageRepository;
 import pickRAP.server.repository.magazine.MagazineRepository;
 import pickRAP.server.repository.magazine.MagazineRepositoryCustom;
@@ -22,6 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static pickRAP.server.common.BaseExceptionStatus.*;
 
 @Service
 @RequiredArgsConstructor
@@ -36,21 +41,22 @@ public class MagazineService {
     private final MagazinePageRepository magazinePageRepository;
     private final ScrapRepository scrapRepository;
     private final TextService textService;
+    private final ColorRepository colorRepository;
 
     @Transactional
     public void save(MagazineRequest request, String email) {
         if(request.getTitle().length() > MAX_TITLE_LENGTH) {
-            throw new BaseException(BaseExceptionStatus.EXCEED_TITLE_LENGTH);
+            throw new BaseException(EXCEED_TITLE_LENGTH);
         }
 
         Member member = memberRepository.findByEmail(email).orElseThrow();
 
         Optional<Scrap> cover = scrapRepository.findById(request.getCoverScrapId());
         if(!cover.isPresent()) {
-            throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
+            throw new BaseException(DONT_EXIST_SCRAP);
         }
         if(cover.get().getScrapType() != ScrapType.IMAGE) {
-            throw new BaseException(BaseExceptionStatus.DONT_MATCH_TYPE);
+            throw new BaseException(DONT_MATCH_TYPE);
         }
 
         Magazine magazine = Magazine.builder()
@@ -110,12 +116,15 @@ public class MagazineService {
             }
         }
 
+        List<ColorType> magazineColors = colorRepository.getMagazineColors(findMagazine);
+
         MagazineResponse magazine = MagazineResponse.builder()
                 .magazineId(findMagazine.getId())
                 .title(findMagazine.getTitle())
                 .openStatus(findMagazine.isOpenStatus())
                 .createdDate(findMagazine.getCreateTime())
                 .pageList(magazinePages)
+                .colors(magazineColors.stream().map(c -> c.getValue()).collect(Collectors.toList()))
                 .build();
 
         return magazine;
@@ -124,7 +133,7 @@ public class MagazineService {
     @Transactional
     public void updateMagazine(MagazineRequest request, Long magazineId, String email) {
         if(request.getTitle().length() > MAX_TITLE_LENGTH) {
-            throw new BaseException(BaseExceptionStatus.EXCEED_TITLE_LENGTH);
+            throw new BaseException(EXCEED_TITLE_LENGTH);
         }
         Magazine findMagazine = magazineRepository.findById(magazineId).orElseThrow();
 
@@ -134,10 +143,10 @@ public class MagazineService {
 
         Optional<Scrap> cover = scrapRepository.findById(request.getCoverScrapId());
         if(!cover.isPresent()) {
-            throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
+            throw new BaseException(DONT_EXIST_SCRAP);
         }
         if(cover.get().getScrapType() != ScrapType.IMAGE) {
-            throw new BaseException(BaseExceptionStatus.DONT_MATCH_TYPE);
+            throw new BaseException(DONT_MATCH_TYPE);
         }
 
         findMagazine.updateMagazine(request.getTitle(), request.isOpenStatus(), cover.get().getFileUrl());
@@ -155,12 +164,12 @@ public class MagazineService {
     public void saveMagazinePages(List<MagazinePageRequest> requestList, Magazine magazine, Member member) {
         requestList.forEach(p -> {
             if (p.getText().length() > MAX_TEXT_LENGTH) {
-                throw new BaseException(BaseExceptionStatus.EXCEED_TEXT_LENGTH);
+                throw new BaseException(EXCEED_TEXT_LENGTH);
             }
 
             Optional<Scrap> scrap = scrapRepository.findById(p.getScrapId());
             if(!scrap.isPresent()) {
-                throw new BaseException(BaseExceptionStatus.DONT_EXIST_SCRAP);
+                throw new BaseException(DONT_EXIST_SCRAP);
             }
 
             MagazinePage page = MagazinePage.builder()
@@ -178,7 +187,7 @@ public class MagazineService {
 
     public void checkMatchWriter(Magazine magazine, String email) {
         if(!magazine.checkWriter(email)) {
-            new BaseException(BaseExceptionStatus.NOT_MATCH_WRITER);
+            new BaseException(NOT_MATCH_WRITER);
         }
     }
 
@@ -223,5 +232,45 @@ public class MagazineService {
             return true;
         }
         return false;
+    }
+
+    public MagazineColorResponse getMagazineColor(String email, Long magazineId) {
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        Magazine magazine = magazineRepository.findById(magazineId).orElseThrow();
+
+        if (magazine.getMember() == member) {
+            throw new BaseException(CANT_COLOR_REACTION);
+        }
+
+        Optional<Color> findColor = colorRepository.findByMemberAndMagazine(member, magazine);
+
+        if (findColor.isEmpty()) {
+            return MagazineColorResponse.builder().colorType(null).build();
+        }
+
+        Color color = findColor.get();
+        return MagazineColorResponse.builder().colorType(color.getColorType().getValue()).build();
+    }
+
+    @Transactional
+    public void addMagazineColor(String email, Long magazineId, MagazineColorRequest magazineColorRequest) {
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        Magazine magazine = magazineRepository.findById(magazineId).orElseThrow();
+
+        ColorType colorType = ColorType.from(magazineColorRequest.getColorType());
+
+        Optional<Color> findColor = colorRepository.findByMemberAndMagazine(member, magazine);
+
+        if (findColor.isEmpty()) {
+            colorRepository.save(Color.builder()
+                    .colorType(colorType)
+                    .member(member)
+                    .magazine(magazine)
+                    .build());
+        } else if (findColor.get().getColorType() == colorType) {
+            colorRepository.delete(findColor.get());
+        } else {
+            findColor.get().updateColor(colorType);
+        }
     }
 }

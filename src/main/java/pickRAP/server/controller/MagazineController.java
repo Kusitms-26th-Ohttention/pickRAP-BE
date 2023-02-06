@@ -10,6 +10,7 @@ import pickRAP.server.common.BaseException;
 import pickRAP.server.common.BaseExceptionStatus;
 import pickRAP.server.common.BaseResponse;
 import pickRAP.server.controller.dto.magazine.*;
+import pickRAP.server.domain.magazine.ColorType;
 import pickRAP.server.service.auth.AuthService;
 import pickRAP.server.service.magazine.MagazineService;
 
@@ -108,6 +109,39 @@ public class MagazineController {
 
         return ResponseEntity.ok(new BaseResponse(SUCCESS));
     }
+
+    @PostMapping("/magazine/{magazine_id}/color")
+    @ApiOperation(value = "색반응하기", notes = "색반응 API<br>" +
+                                            "- 최초 반응 : 색반응 추가<br>" +
+                                            "- 마지막 반응과 다른색의 반응 : 반응 대체<br>" +
+                                            "- 마지막 반응과 같은색의 반응 : 반응 삭제")
+    @ApiResponses({
+            @ApiResponse(responseCode = "500", description = "서버 예외")
+    })
+    public ResponseEntity<BaseResponse> addMagazineColor(@PathVariable("magazine_id") Long magazineId
+                                                 , @RequestBody MagazineColorRequest magazineColorRequest) {
+        String email = authService.getUserEmail();
+        magazineService.addMagazineColor(email, magazineId, magazineColorRequest);
+
+        return ResponseEntity.ok(new BaseResponse(SUCCESS));
+    }
+
+
+    @GetMapping("/magazine/{magazine_id}/color")
+    @ApiOperation(value = "색 반응 조회", notes = "매거진에서 색반응+ 버튼 클릭 시 API<br>" +
+                                                "- 마지막으로 반응한 색상을 리턴<br>" +
+                                                "- 없으면 null 값 리턴")
+    @ApiResponses({
+            @ApiResponse(responseCode = "400", description = "7001-자신의 매거진에 반응하려는 경우"),
+            @ApiResponse(responseCode = "500", description = "서버 예외")
+    })
+    public ResponseEntity<BaseResponse<MagazineColorResponse>> getMagazineColor(@PathVariable("magazine_id") Long magazineId){
+        String email = authService.getUserEmail();
+        MagazineColorResponse magazineColorResponse = magazineService.getMagazineColor(email, magazineId);
+
+        return ResponseEntity.ok(new BaseResponse(magazineColorResponse));
+    }
+
 
     @DeleteMapping("/magazine/page")
     @ApiOperation(value = "매거진 페이지 삭제하기", notes = "매거진의 페이지를 삭제하는 api")

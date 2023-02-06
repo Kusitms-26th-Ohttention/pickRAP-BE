@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pickRAP.server.common.BaseResponse;
 import pickRAP.server.controller.dto.analysis.AnalysisResponse;
+import pickRAP.server.controller.dto.analysis.PersonalMoodResponse;
 import pickRAP.server.controller.dto.analysis.RevisitResponse;
 import pickRAP.server.service.auth.AuthService;
+import pickRAP.server.service.color.ColorService;
 import pickRAP.server.service.hashtag.HashtagService;
 import pickRAP.server.service.scrap.RevisitScrapService;
 import pickRAP.server.service.text.TextService;
@@ -29,8 +31,10 @@ public class AnalysisController {
 
     private final AuthService authService;
     private final HashtagService hashtagService;
+    private final ColorService colorService;
     private final TextService textService;
     private final RevisitScrapService revisitScrapService;
+
 
     @GetMapping
     @ApiOperation(value = "분석", notes = "해시태그 분석 & 텍스트 분석<br>" +
@@ -49,7 +53,8 @@ public class AnalysisController {
         String email = authService.getUserEmail();
         // 해시태그 분석
         AnalysisResponse analysisResponse = hashtagService.getHashtagAnalysisResults(filter, year, month, email);
-
+        // 퍼스널 무드 분석
+        analysisResponse.setPersonalMoods(colorService.getPersonalMoodAnalysisResults(email));
         // 텍스트 분석
         analysisResponse.setTexts(textService.getTextAnalysisResults(email));
         return ResponseEntity.ok(new BaseResponse(analysisResponse));
