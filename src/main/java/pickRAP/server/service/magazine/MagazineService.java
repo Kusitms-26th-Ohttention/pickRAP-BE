@@ -275,13 +275,7 @@ public class MagazineService {
     }
 
     @Transactional
-    public List<MagazineListResponse> findMagazineByHashtag(String email, String hashtag) {
-        Member member = memberRepository.findByEmail(email).orElseThrow();
-
-        // 해시태그 tag 검색
-        // 스크랩 scrap id 검색
-        // 매거진 페이지 magazine id 검색
-        // 매거진 검색
+    public List<MagazineListResponse> findMagazineByHashtag(String hashtag) {
         List<Magazine> findMagazines = magazineRepositoryCustom.findMagazineByHashtag(hashtag);
 
         List<MagazineListResponse> collect = findMagazines.stream()

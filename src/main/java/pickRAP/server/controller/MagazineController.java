@@ -178,9 +178,7 @@ public class MagazineController {
     })
     public ResponseEntity<BaseResponse<List<MagazineListResponse>>> getSearchMagazineList(
             @RequestParam("search_keyword") String keyword) {
-        String email = authService.getUserEmail();
-
-        List<MagazineListResponse> response = magazineService.findMagazineByHashtag(email, keyword);
+        List<MagazineListResponse> response = magazineService.findMagazineByHashtag(keyword);
 
         return ResponseEntity.ok(new BaseResponse(response));
     }

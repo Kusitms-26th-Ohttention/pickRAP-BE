@@ -30,10 +30,6 @@ public class MagazineRepositoryImpl implements MagazineRepositoryCustom{
 
     @Override
     public List<Magazine> findMagazineByHashtag(String keyword) {
-        // 해시태그 tag 검색
-        // 스크랩 scrap id 검색
-        // 매거진 페이지 magazine id 검색
-        // 매거진 검색
         return queryFactory
                 .selectFrom(magazine)
                 .join(magazine.pages, magazinePage)
