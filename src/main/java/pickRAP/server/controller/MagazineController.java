@@ -170,4 +170,19 @@ public class MagazineController {
 
         return ResponseEntity.ok(new BaseResponse(result));
     }
+
+    @GetMapping("/magazine/search")
+    @ApiOperation(value = "매거진 검색", notes = "query string에 search_keyword(검색어)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "500", description = "서버 예외")
+    })
+    public ResponseEntity<BaseResponse<List<MagazineListResponse>>> getSearchMagazineList(
+            @RequestParam("search_keyword") String keyword) {
+        String email = authService.getUserEmail();
+
+        List<MagazineListResponse> response = magazineService.findMagazineByHashtag(email, keyword);
+
+        return ResponseEntity.ok(new BaseResponse(response));
+    }
+
 }

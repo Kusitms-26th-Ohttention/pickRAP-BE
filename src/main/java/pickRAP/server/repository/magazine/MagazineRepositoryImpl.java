@@ -7,8 +7,12 @@ import pickRAP.server.domain.magazine.Magazine;
 
 import java.util.List;
 
+import static pickRAP.server.domain.hashtag.QHashtag.hashtag;
 import static pickRAP.server.domain.magazine.QMagazine.magazine;
+import static pickRAP.server.domain.magazine.QMagazinePage.magazinePage;
 import static pickRAP.server.domain.member.QMember.member;
+import static pickRAP.server.domain.scrap.QScrap.scrap;
+import static pickRAP.server.domain.scrap.QScrapHashtag.scrapHashtag;
 
 @RequiredArgsConstructor
 public class MagazineRepositoryImpl implements MagazineRepositoryCustom{
@@ -22,5 +26,24 @@ public class MagazineRepositoryImpl implements MagazineRepositoryCustom{
                 .where(member.email.eq(email))
                 .orderBy(magazine.createTime.desc())
                 .fetch();
+    }
+
+    @Override
+    public List<Magazine> findMagazineByHashtag(String keyword) {
+        // 해시태그 tag 검색
+        // 스크랩 scrap id 검색
+        // 매거진 페이지 magazine id 검색
+        // 매거진 검색
+        return queryFactory
+                .selectFrom(magazine)
+                .join(magazine.pages, magazinePage)
+                .join(magazinePage.scrap, scrap)
+                .join(scrap.scrapHashtags, scrapHashtag)
+                .join(scrapHashtag.hashtag, hashtag)
+                .where(
+                        hashtag.tag.contains(keyword),
+                        magazine.openStatus.eq(true)
+                )
+                .distinct().fetch();
     }
 }
