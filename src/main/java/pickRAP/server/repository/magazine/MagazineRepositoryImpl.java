@@ -1,5 +1,7 @@
 package pickRAP.server.repository.magazine;
 
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import pickRAP.server.domain.category.Category;
@@ -42,4 +44,24 @@ public class MagazineRepositoryImpl implements MagazineRepositoryCustom{
                 )
                 .distinct().fetch();
     }
+
+    @Override
+    public List<Magazine> findMagazineByHashtagAndNotWriter(List<String> keyword, String email) {
+        BooleanBuilder builder = new BooleanBuilder();
+        for(String k : keyword) {
+            builder.and(hashtag.tag.contains(k));
+        }
+        builder.and(magazine.openStatus.eq(true));
+        builder.and(magazine.member.email.ne(email));
+
+        return queryFactory
+                .selectFrom(magazine)
+                .join(magazine.pages, magazinePage)
+                .join(magazinePage.scrap, scrap)
+                .join(scrap.scrapHashtags, scrapHashtag)
+                .join(scrapHashtag.hashtag, hashtag)
+                .where(builder)
+                .distinct().fetch();
+    }
+
 }
