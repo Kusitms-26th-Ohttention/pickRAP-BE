@@ -317,9 +317,9 @@ public class MagazineService {
         // 최종 추천 매거진을 수집
         List<Magazine> result = new ArrayList<>();
 
-        // 1-1. +) 사용자의 최근 제작된 매거진의 해시태그 사용하기
+        // 1-1. +) 사용자의 최근 제작된 3개의 매거진의 해시태그 사용하기
         Member member = memberRepository.findByEmail(email).orElseThrow();
-        Optional<Magazine> latestMagazine = magazineRepository.findTop1ByMemberOrderByCreateTimeDesc(member);
+        Optional<Magazine> latestMagazine = magazineRepository.findTop3ByMemberOrderByCreateTimeDesc(member);
 
         List<Magazine> findMagazines = new ArrayList<>();
         if (!latestMagazine.isPresent()) {
