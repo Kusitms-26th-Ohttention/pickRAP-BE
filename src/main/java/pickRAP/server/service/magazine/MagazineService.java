@@ -8,6 +8,7 @@ import pickRAP.server.common.BaseExceptionStatus;
 import pickRAP.server.controller.dto.analysis.HashTagResponse;
 import pickRAP.server.controller.dto.analysis.HashtagFilterCondition;
 import pickRAP.server.controller.dto.magazine.*;
+import pickRAP.server.domain.hashtag.Hashtag;
 import pickRAP.server.domain.magazine.Color;
 import pickRAP.server.domain.magazine.ColorType;
 import pickRAP.server.domain.magazine.Magazine;
@@ -297,86 +298,90 @@ public class MagazineService {
 
     @Transactional
     public List<MagazineListResponse> recommendedMagazineByMember(String email) {
-      /*
-      추천 로직
-      ** 피드에 보이는 위치와 순서는 랜덤
-      ** 중복 콘텐츠 우선순위 3>2>1
-
-      1. 동일한 해시태그가 사용된 매거진 (40%) - 8개
-      동일 해시태그 개수가 많은 순서대로 우선 추천
-
-      2. 사용자의 TOP3 해시태그 사용된 매거진 (30%) - 6개
-      더 많은 개수의 TOP3 해시태그를 사용한 순서대로 우선 추천
-
-      3. 사용자의 TOP3 해시태그와 연관됐지만 매거진에서는 사용되지 않은 경우 (30%) - 6개
-       */
-
         // 기준별 콘텐츠가 비율만큼 서치되었는지 여부
         boolean isFullFirst = false, isFullSecond = false, isFullThird = false;
 
         // 최종 추천 매거진을 수집
         List<Magazine> result = new ArrayList<>();
 
-        // 1-1. +) 사용자의 최근 제작된 3개의 매거진의 해시태그 사용하기
+        // 1-1. 사용자의 최근 제작된 3개의 매거진의 해시태그 사용하기
         Member member = memberRepository.findByEmail(email).orElseThrow();
         Optional<Magazine> latestMagazine = magazineRepository.findTop3ByMemberOrderByCreateTimeDesc(member);
 
+        List<String> hashtags = new ArrayList<>();
         List<Magazine> findMagazines = new ArrayList<>();
+
         if (!latestMagazine.isPresent()) {
-            // +) 사용자의 매거진 제작 이력이 없다면 전체 매거진에서 최근 20개 랜덤 추천
-            findMagazines = magazineRepository.findTop20ByOpenStatusOrderByCreateTimeDesc(true);
-        } else {
+            // 사용자의 매거진 제작 이력이 없다면 스크랩 해시태그 기준 추천
+            List<Hashtag> findHashtags = hashtagRepository.findByMember(member);
+
+            if(hashtags.size() == 0) {
+                //TODO : 스크랩 제작 이력이 없다면 가장 많은 퍼스널 무드를 받은 매거진 20개 추천
+                /**
+                 * List<MagazineListResponse> collect = result.stream()
+                 *                 .map(m -> MagazineListResponse.builder()
+                 *                         .magazineId(m.getId())
+                 *                         .coverUrl(m.getCover())
+                 *                         .title(m.getTitle())
+                 *                         .build())
+                 *                 .collect(Collectors.toList());
+                 *
+                 *         return collect;
+                 */
+            }
+
+            for(Hashtag h : findHashtags) {
+                hashtags.add(h.getTag());
+            }
+        }
+        else {
             // 1-2. 사용자의 해시태그 String 리스트를 먼저 찾기
-            List<String> hashtags = getMagazineHashtags(latestMagazine.get());
+            hashtags = getMagazineHashtags(latestMagazine.get());
+        }
 
-            // 1-2. 사용자의 해시태그를 바탕으로 Magazine 찾기
-            findMagazineByHashtagOrderByPriority(findMagazines, hashtags, email);
+        // 1-2. 사용자의 해시태그를 바탕으로 Magazine 찾기
+        findMagazineByHashtagOrderByPriority(findMagazines, hashtags, email);
 
-            // 검색한 매거진의 크기가 8개보다 적다면
-            if(findMagazines.size() < RECOMMENDED_MAGAZINE_FIRST_SIZE + 1) {
-                result = findMagazines;
-            } else {
-                isFullFirst = true;
-                result = findMagazines.subList(0, RECOMMENDED_MAGAZINE_FIRST_SIZE);
-            }
+        if(findMagazines.size() - 1 < RECOMMENDED_MAGAZINE_FIRST_SIZE) {
+            result = findMagazines;
+        } else {
+            isFullFirst = true;
+            result = findMagazines.subList(0, RECOMMENDED_MAGAZINE_FIRST_SIZE);
+        }
 
-            // 2-1. 사용자의 TOP3 해시태그 String 리스트를 먼저 찾기 - 이전에 사용한 해시태그 분석 로직 재사용
-            HashtagFilterCondition hashtagFilterCond = HashtagFilterCondition.builder()
-                    .filter("all")
-                    .build();
+        // 2-1. 사용자의 TOP3 해시태그 String 리스트를 먼저 찾기 - 이전에 사용한 해시태그 분석 로직 재사용
+        HashtagFilterCondition hashtagFilterCond = HashtagFilterCondition.builder()
+                .filter("all")
+                .build();
 
-            List<HashTagResponse> hashTagResponses = hashtagRepository.getHashtagAnalysisResults(hashtagFilterCond, email);
+        List<HashTagResponse> hashTagResponses = hashtagRepository.getHashtagAnalysisResults(hashtagFilterCond, email);
 
-            hashtags = new ArrayList<>();
-            for(HashTagResponse hashtag : hashTagResponses) {
-                hashtags.add(hashtag.getTag());
-            }
+        hashtags = new ArrayList<>();
+        for(HashTagResponse hashtag : hashTagResponses) {
+            hashtags.add(hashtag.getTag());
+        }
 
-            // 2-2. 사용자의 해시태그를 바탕으로 Magazine 찾기
-            findMagazineByHashtagOrderByPriority(findMagazines, hashtags, email);
+        // 2-2. 사용자의 해시태그를 바탕으로 Magazine 찾기
+        findMagazineByHashtagOrderByPriority(findMagazines, hashtags, email);
 
-            // 검색한 매거진의 크기가 6개보다 적다면
-            if(findMagazines.size() < RECOMMENDED_MAGAZINE_REMAIN_SIZE + 1) {
-                result.addAll(findMagazines);
-            } else {
-                // 2번 기준으로 찾은 매거진 6개
-                isFullSecond = true;
-                result.addAll(findMagazines.subList(0, RECOMMENDED_MAGAZINE_REMAIN_SIZE));
+        if(findMagazines.size() - 1 < RECOMMENDED_MAGAZINE_REMAIN_SIZE) {
+            result.addAll(findMagazines);
+        } else {
+            isFullSecond = true;
+            result.addAll(findMagazines.subList(0, RECOMMENDED_MAGAZINE_REMAIN_SIZE));
 
-                // 1번 기준으로 찾은 매거진의 개수가 모자랐다면
-                if(!isFullFirst) {
-                    // 2번 기준으로 찾은 매거진으로 채우기
-                    int remainIndex = RECOMMENDED_MAGAZINE_FIRST_SIZE - result.size();
-                    for(int i = 0, j = RECOMMENDED_MAGAZINE_REMAIN_SIZE;
-                        i < remainIndex && j < findMagazines.size(); i++, j++) {
-                        result.add(findMagazines.get(j));
-                    }
+            if(!isFullFirst) {
+                int remainIndex = RECOMMENDED_MAGAZINE_FIRST_SIZE - result.size();
+                for(int i = 0, j = RECOMMENDED_MAGAZINE_REMAIN_SIZE;
+                    i < remainIndex && j < findMagazines.size(); i++, j++) {
+                    result.add(findMagazines.get(j));
                 }
             }
-
-            // 3. 사용자의 TOP3 해시태그와 연관됐지만 매거진에서는 사용되지 않은 경우 (30%) - 6개
-
         }
+
+        //TODO : 3-1) 사용자가 반응한 매거진 해시태그 기준 추천 - 15%
+        //TODO : 3-2) 사용자의 퍼스널 무드 분석 결과와 같은 반응을 받은 매거진 기준 추천 - 15%
+
         List<MagazineListResponse> collect = result.stream()
                 .map(m -> MagazineListResponse.builder()
                         .magazineId(m.getId())
