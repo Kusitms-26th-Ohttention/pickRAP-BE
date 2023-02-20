@@ -306,12 +306,12 @@ public class MagazineService {
 
         // 1-1. 사용자의 최근 제작된 3개의 매거진의 해시태그 사용하기
         Member member = memberRepository.findByEmail(email).orElseThrow();
-        Optional<Magazine> latestMagazine = magazineRepository.findTop3ByMemberOrderByCreateTimeDesc(member);
+        List<Magazine> latestMagazine = magazineRepository.findTop3ByMemberOrderByCreateTimeDesc(member);
 
         List<String> hashtags = new ArrayList<>();
         List<Magazine> findMagazines = new ArrayList<>();
 
-        if (!latestMagazine.isPresent()) {
+        if (latestMagazine.size() == 0) {
             // 사용자의 매거진 제작 이력이 없다면 스크랩 해시태그 기준 추천
             List<Hashtag> findHashtags = hashtagRepository.findByMember(member);
 
@@ -336,7 +336,7 @@ public class MagazineService {
         }
         else {
             // 1-2. 사용자의 해시태그 String 리스트를 먼저 찾기
-            hashtags = getMagazineHashtags(latestMagazine.get());
+            hashtags = getMagazineHashtags(latestMagazine);
         }
 
         // 1-2. 사용자의 해시태그를 바탕으로 Magazine 찾기
@@ -394,17 +394,20 @@ public class MagazineService {
     }
 
     // 매거진의 모든 해시태그를 반환
-    private List<String> getMagazineHashtags(Magazine magazine) {
-        List<ScrapHashtag> scrapHashtags = new ArrayList<>();
+    private List<String> getMagazineHashtags(List<Magazine> magazine) {
         List<String> hashtags = new ArrayList<>();
 
-        for(MagazinePage page : magazine.getPages()) {
-            Scrap scrap = page.getScrap();
-            scrapHashtags.addAll(scrap.getScrapHashtags());
-        }
+        for(Magazine m : magazine) {
+            List<ScrapHashtag> scrapHashtags = new ArrayList<>();
 
-        for(ScrapHashtag scrapHashtag : scrapHashtags) {
-            hashtags.add(scrapHashtag.getHashtag().getTag());
+            for(MagazinePage page : m.getPages()) {
+                Scrap scrap = page.getScrap();
+                scrapHashtags.addAll(scrap.getScrapHashtags());
+            }
+
+            for(ScrapHashtag scrapHashtag : scrapHashtags) {
+                hashtags.add(scrapHashtag.getHashtag().getTag());
+            }
         }
         return hashtags;
     }

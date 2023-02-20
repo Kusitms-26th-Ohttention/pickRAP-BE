@@ -10,5 +10,5 @@ import java.util.Optional;
 
 public interface MagazineRepository extends JpaRepository<Magazine, Long> {
     Optional<Magazine> findByTitleAndMember(String title, Member member);
-    Optional<Magazine> findTop3ByMemberOrderByCreateTimeDesc(Member member);
+    List<Magazine> findTop3ByMemberOrderByCreateTimeDesc(Member member);
 }
