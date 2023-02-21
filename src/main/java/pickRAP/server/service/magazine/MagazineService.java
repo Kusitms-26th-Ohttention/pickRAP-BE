@@ -26,6 +26,7 @@ import pickRAP.server.repository.member.MemberRepository;
 import pickRAP.server.repository.scrap.ScrapHashtagRepository;
 import pickRAP.server.repository.scrap.ScrapRepository;
 import pickRAP.server.service.text.TextService;
+import pickRAP.server.util.deduplication.DeduplicationUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -339,16 +340,19 @@ public class MagazineService {
         else {
             // 1-2. 사용자의 해시태그 String 리스트를 먼저 찾기
             hashtags = getMagazineHashtags(latestMagazine);
+            // 해시태그 중복 제거
+            hashtags = DeduplicationUtils.deduplication(hashtags);
         }
 
         // 1-2. 사용자의 해시태그를 바탕으로 Magazine 찾기
         findMagazines = findMagazineByHashtagOrderByPriority(findMagazines, hashtags, email);
+        findMagazines = magazineDeduplication(findMagazines);
 
-        if(findMagazines.size() - 1 < RECOMMENDED_MAGAZINE_FIRST_SIZE) {
-            result = findMagazines;
+        if(findMagazines.size() < RECOMMENDED_MAGAZINE_FIRST_SIZE) {
+            result.addAll(findMagazines);
         } else {
             isFullFirst = true;
-            result = findMagazines.subList(0, RECOMMENDED_MAGAZINE_FIRST_SIZE);
+            result.addAll(findMagazines.subList(0, RECOMMENDED_MAGAZINE_FIRST_SIZE));
         }
 
         // 2-1. 사용자의 TOP3 해시태그 String 리스트를 먼저 찾기 - 이전에 사용한 해시태그 분석 로직 재사용
@@ -364,20 +368,22 @@ public class MagazineService {
         }
 
         // 2-2. 사용자의 해시태그를 바탕으로 Magazine 찾기
-        findMagazineByHashtagOrderByPriority(findMagazines, hashtags, email);
+        findMagazines = findMagazineByHashtagOrderByPriority(findMagazines, hashtags, email);
+        findMagazines = magazineDeduplication(findMagazines);
 
-        if(findMagazines.size() - 1 < RECOMMENDED_MAGAZINE_REMAIN_SIZE) {
+        if(findMagazines.size() < RECOMMENDED_MAGAZINE_REMAIN_SIZE) {
             result.addAll(findMagazines);
-        } else {
+        }
+        else {
             isFullSecond = true;
-            result.addAll(findMagazines.subList(0, RECOMMENDED_MAGAZINE_REMAIN_SIZE));
+            result.addAll(findMagazines);
+            result = magazineDeduplication(result);
 
-            if(!isFullFirst) {
-                int remainIndex = RECOMMENDED_MAGAZINE_FIRST_SIZE - result.size();
-                for(int i = 0, j = RECOMMENDED_MAGAZINE_REMAIN_SIZE;
-                    i < remainIndex && j < findMagazines.size(); i++, j++) {
-                    result.add(findMagazines.get(j));
-                }
+            if(result.size() < RECOMMENDED_MAGAZINE_FIRST_SIZE + RECOMMENDED_MAGAZINE_REMAIN_SIZE) {
+                result = result.subList(0, result.size());
+            }
+            else {
+                result = result.subList(0, RECOMMENDED_MAGAZINE_FIRST_SIZE + RECOMMENDED_MAGAZINE_REMAIN_SIZE);
             }
         }
 
@@ -414,22 +420,45 @@ public class MagazineService {
         return hashtags;
     }
 
-    // List 중복 제거 (List->Set->List)
-    // 후순위로 삽입된 중복데이터가 삭제됨
-    private List<Magazine> removeMagazineDuplication(List<Magazine> magazines) {
-        return new ArrayList<Magazine>(
-                new HashSet<Magazine>(magazines));
+    // List Object 중복제거 (key:제목)
+    private List<Magazine> magazineDeduplication(List<Magazine> magazines) {
+        return DeduplicationUtils.deduplication(magazines, Magazine::getId);
     }
 
     // 해시태그로 매거진 찾기 (우선순위)
     private List<Magazine> findMagazineByHashtagOrderByPriority(List<Magazine> findMagazines,
                                                              List<String> hashtags, String email) {
+        boolean[] visited = new boolean[hashtags.size()];
+
         // 겹치는 해시태그가 많은 순서
-        for(int i = hashtags.size()-1; i >= 0; i--) {
-            findMagazines = magazineRepositoryCustom.findMagazineByHashtagAndNotWriter(hashtags, email);
-            hashtags.remove(i);
+        for(int i = hashtags.size(); i > 0 ; i--) {
+            List<String> searchHashtags = combination(hashtags, visited, 0, hashtags.size(), i);
+            findMagazines.addAll(magazineRepositoryCustom.findMagazineByHashtagAndNotWriter(searchHashtags, email));
         }
-        // 중복 데이터 삭제
-        return removeMagazineDuplication(findMagazines);
+
+        return findMagazines;
+    }
+
+    // 조합(백트래킹) : 순서 상관없는 경우의 수
+    private List<String> combination(List<String> hashtags, boolean[] visited, int start, int n, int r) {
+        List<String> result = new ArrayList<>();
+        if(r == 0) {
+            System.out.print("해시태그 종류 : ");
+            for (int i = 0; i < n; i++) {
+                if (visited[i]) {
+                    result.add(hashtags.get(i));
+                    System.out.print(hashtags.get(i) + ", ");
+                }
+            }
+            System.out.println();
+            return result;
+        }
+
+        for(int i = start; i < n; i++) {
+            visited[i] = true;
+            combination(hashtags, visited, i + 1, n, r - 1);
+            visited[i] = false;
+        }
+        return result;
     }
 }
