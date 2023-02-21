@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pickRAP.server.common.BaseException;
-import pickRAP.server.common.BaseExceptionStatus;
 import pickRAP.server.controller.dto.analysis.HashTagResponse;
 import pickRAP.server.controller.dto.analysis.HashtagFilterCondition;
 import pickRAP.server.controller.dto.magazine.*;
@@ -40,8 +39,8 @@ public class MagazineService {
     final static int MAX_TEXT_LENGTH = 200;
     final static int MAX_TITLE_LENGTH = 15;
 
-    final static int RECOMMENDED_MAGAZINE_FIRST_SIZE = 8;
-    final static int RECOMMENDED_MAGAZINE_REMAIN_SIZE = 6;
+    final static int RECOMMENDED_FIRST_SIZE = 8;
+    final static int RECOMMENDED_SECOND_SIZE = 6;
 
     private final MemberRepository memberRepository;
     private final MagazineRepository magazineRepository;
@@ -301,36 +300,23 @@ public class MagazineService {
 
     @Transactional
     public List<MagazineListResponse> recommendedMagazineByMember(String email) {
-        // 기준별 콘텐츠가 비율만큼 서치되었는지 여부
-        boolean isFullFirst = false, isFullSecond = false, isFullThird = false;
-
         // 최종 추천 매거진을 수집
         List<Magazine> result = new ArrayList<>();
-
-        // 1-1. 사용자의 최근 제작된 3개의 매거진의 해시태그 사용하기
-        Member member = memberRepository.findByEmail(email).orElseThrow();
-        List<Magazine> latestMagazine = magazineRepository.findTop3ByMemberOrderByCreateTimeDesc(member);
 
         List<String> hashtags = new ArrayList<>();
         List<Magazine> findMagazines = new ArrayList<>();
 
-        if (latestMagazine.size() == 0) {
+        // 1-1. 사용자의 최근 제작된 3개의 매거진의 해시태그 사용하기
+        Member member = memberRepository.findByEmail(email).orElseThrow();
+        List<Magazine> latestCreatedMagazine = magazineRepository.findTop3ByMemberOrderByCreateTimeDesc(member);
+
+        if (latestCreatedMagazine.size() == 0) {
             // 사용자의 매거진 제작 이력이 없다면 스크랩 해시태그 기준 추천
             List<Hashtag> findHashtags = hashtagRepository.findByMember(member);
 
             if(hashtags.size() == 0) {
                 //TODO : 스크랩 제작 이력이 없다면 가장 많은 퍼스널 무드를 받은 매거진 20개 추천
-                /**
-                 * List<MagazineListResponse> collect = result.stream()
-                 *                 .map(m -> MagazineListResponse.builder()
-                 *                         .magazineId(m.getId())
-                 *                         .coverUrl(m.getCover())
-                 *                         .title(m.getTitle())
-                 *                         .build())
-                 *                 .collect(Collectors.toList());
-                 *
-                 *         return collect;
-                 */
+
             }
 
             for(Hashtag h : findHashtags) {
@@ -338,24 +324,19 @@ public class MagazineService {
             }
         }
         else {
-            // 1-2. 사용자의 해시태그 String 리스트를 먼저 찾기
-            hashtags = getMagazineHashtags(latestMagazine);
-            // 해시태그 중복 제거
-            hashtags = DeduplicationUtils.deduplication(hashtags);
+            hashtags = getHashtagsInMagazine(latestCreatedMagazine);
         }
 
-        // 1-2. 사용자의 해시태그를 바탕으로 Magazine 찾기
         findMagazines = findMagazineByHashtagOrderByPriority(findMagazines, hashtags, email);
-        findMagazines = magazineDeduplication(findMagazines);
 
-        if(findMagazines.size() < RECOMMENDED_MAGAZINE_FIRST_SIZE) {
-            result.addAll(findMagazines);
-        } else {
-            isFullFirst = true;
-            result.addAll(findMagazines.subList(0, RECOMMENDED_MAGAZINE_FIRST_SIZE));
+        int index = 0;
+        while(result.size() < RECOMMENDED_FIRST_SIZE
+                && findMagazines.size() > index) {
+            result.add(findMagazines.get(index));
+            result = magazineDeduplication(result);
+            index++;
         }
 
-        // 2-1. 사용자의 TOP3 해시태그 String 리스트를 먼저 찾기 - 이전에 사용한 해시태그 분석 로직 재사용
         HashtagFilterCondition hashtagFilterCond = HashtagFilterCondition.builder()
                 .filter("all")
                 .build();
@@ -368,24 +349,14 @@ public class MagazineService {
             hashtags.add(hashTagResponses.get(i).getTag());
         }
 
-        // 2-2. 사용자의 해시태그를 바탕으로 Magazine 찾기
         findMagazines = findMagazineByHashtagOrderByPriority(findMagazines, hashtags, email);
-        findMagazines = magazineDeduplication(findMagazines);
 
-        if(findMagazines.size() < RECOMMENDED_MAGAZINE_REMAIN_SIZE) {
-            result.addAll(findMagazines);
+        index = 0;
+        while(result.size() < RECOMMENDED_FIRST_SIZE + RECOMMENDED_SECOND_SIZE
+                && findMagazines.size() > index) {
+            result.add(findMagazines.get(index));
             result = magazineDeduplication(result);
-        }
-        else {
-            result.addAll(findMagazines);
-            result = magazineDeduplication(result);
-
-            if(result.size() < RECOMMENDED_MAGAZINE_FIRST_SIZE + RECOMMENDED_MAGAZINE_REMAIN_SIZE) {
-                result = result.subList(0, result.size());
-            }
-            else {
-                result = result.subList(0, RECOMMENDED_MAGAZINE_FIRST_SIZE + RECOMMENDED_MAGAZINE_REMAIN_SIZE);
-            }
+            index++;
         }
 
         //TODO : 3-1) 사용자가 반응한 매거진 해시태그 기준 추천 - 15%
@@ -402,8 +373,7 @@ public class MagazineService {
         return collect;
     }
 
-    // 매거진의 모든 해시태그를 반환
-    private List<String> getMagazineHashtags(List<Magazine> magazine) {
+    private List<String> getHashtagsInMagazine(List<Magazine> magazine) {
         List<String> hashtags = new ArrayList<>();
 
         for(Magazine m : magazine) {
@@ -418,10 +388,10 @@ public class MagazineService {
                 hashtags.add(scrapHashtag.getHashtag().getTag());
             }
         }
-        return hashtags;
+        return DeduplicationUtils.deduplication(hashtags);
     }
 
-    // List Object 중복제거 (key:제목)
+    // List Object 중복제거
     private List<Magazine> magazineDeduplication(List<Magazine> magazines) {
         return DeduplicationUtils.deduplication(magazines, Magazine::getId);
     }
@@ -433,14 +403,14 @@ public class MagazineService {
 
         // 겹치는 해시태그가 많은 순서
         for(int i = hashtags.size(); i > 0 ; i--) {
-            findMagazines.addAll(combination(hashtags, visited, 0, hashtags.size(), i, email));
+            findMagazines.addAll(combinationOfHashcode(hashtags, visited, 0, hashtags.size(), i, email));
         }
 
-        return findMagazines;
+        return magazineDeduplication(findMagazines);
     }
 
     // 조합(백트래킹) : 순서 상관없는 경우의 수
-    private List<Magazine> combination(List<String> hashtags, boolean[] visited, int start, int n, int r, String email) {
+    private List<Magazine> combinationOfHashcode(List<String> hashtags, boolean[] visited, int start, int n, int r, String email) {
         List<Magazine> result = new ArrayList<>();
         if(r == 0) {
             List<String> priorityHashtags = new ArrayList<>();
@@ -454,7 +424,7 @@ public class MagazineService {
 
         for(int i = start; i < n; i++) {
             visited[i] = true;
-            result.addAll(combination(hashtags, visited, i + 1, n, r - 1, email));
+            result.addAll(combinationOfHashcode(hashtags, visited, i + 1, n, r - 1, email));
             visited[i] = false;
         }
         return result;
