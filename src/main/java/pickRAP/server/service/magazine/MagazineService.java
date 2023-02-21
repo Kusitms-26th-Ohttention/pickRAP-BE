@@ -23,6 +23,7 @@ import pickRAP.server.repository.magazine.MagazinePageRepository;
 import pickRAP.server.repository.magazine.MagazineRepository;
 import pickRAP.server.repository.magazine.MagazineRepositoryCustom;
 import pickRAP.server.repository.member.MemberRepository;
+import pickRAP.server.repository.scrap.ScrapHashtagRepository;
 import pickRAP.server.repository.scrap.ScrapRepository;
 import pickRAP.server.service.text.TextService;
 
@@ -49,6 +50,7 @@ public class MagazineService {
     private final TextService textService;
     private final ColorRepository colorRepository;
     private final HashtagRepository hashtagRepository;
+    private final ScrapHashtagRepository scrapHashtagRepository;
 
     @Transactional
     public void save(MagazineRequest request, String email) {
@@ -340,7 +342,7 @@ public class MagazineService {
         }
 
         // 1-2. 사용자의 해시태그를 바탕으로 Magazine 찾기
-        findMagazineByHashtagOrderByPriority(findMagazines, hashtags, email);
+        findMagazines = findMagazineByHashtagOrderByPriority(findMagazines, hashtags, email);
 
         if(findMagazines.size() - 1 < RECOMMENDED_MAGAZINE_FIRST_SIZE) {
             result = findMagazines;
@@ -402,7 +404,7 @@ public class MagazineService {
 
             for(MagazinePage page : m.getPages()) {
                 Scrap scrap = page.getScrap();
-                scrapHashtags.addAll(scrap.getScrapHashtags());
+                scrapHashtags.addAll(scrapHashtagRepository.findByScrapId(scrap.getId()));
             }
 
             for(ScrapHashtag scrapHashtag : scrapHashtags) {
