@@ -369,15 +369,7 @@ public class MagazineServiceTest {
         List<MagazineListResponse> response = magazineService.recommendedMagazineByMember("member1@test.com");
 
         // then
-        //assertThat(response.size()).isEqualTo(5);
-
-        for(MagazineListResponse r : response) {
-            System.out.println(r.getTitle());
-        }
-//        assertThat(response.get(0).getTitle()).isEqualTo("3개 매거진");
-//        assertThat(response.get(1).getTitle()).isEqualTo("2개 매거진");
-//        assertThat(response.get(2).getTitle()).isEqualTo("3개 매거진");
-//        assertThat(response.get(3).getTitle()).isEqualTo("1개 매거진");
+        assertThat(response.size()).isEqualTo(3);
     }
 
     @Test

@@ -49,7 +49,6 @@ public class MagazineRepositoryImpl implements MagazineRepositoryCustom{
     public List<Magazine> findMagazineByHashtagAndNotWriter(List<String> keyword, String email) {
         BooleanBuilder builder = new BooleanBuilder();
         for(String k : keyword) {
-            System.out.print("잇힝 " + k);
             builder.and(hashtag.tag.contains(k));
         }
         builder.and(magazine.openStatus.eq(true));

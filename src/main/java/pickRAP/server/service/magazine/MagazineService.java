@@ -374,9 +374,9 @@ public class MagazineService {
 
         if(findMagazines.size() < RECOMMENDED_MAGAZINE_REMAIN_SIZE) {
             result.addAll(findMagazines);
+            result = magazineDeduplication(result);
         }
         else {
-            isFullSecond = true;
             result.addAll(findMagazines);
             result = magazineDeduplication(result);
 
@@ -433,30 +433,28 @@ public class MagazineService {
 
         // 겹치는 해시태그가 많은 순서
         for(int i = hashtags.size(); i > 0 ; i--) {
-            List<String> priorityHash = combination(hashtags, visited, 0, hashtags.size(), i);
-
-            findMagazines.addAll(
-                    magazineRepositoryCustom.findMagazineByHashtagAndNotWriter(priorityHash, email));
+            findMagazines.addAll(combination(hashtags, visited, 0, hashtags.size(), i, email));
         }
 
         return findMagazines;
     }
 
     // 조합(백트래킹) : 순서 상관없는 경우의 수
-    private List<String> combination(List<String> hashtags, boolean[] visited, int start, int n, int r) {
-        List<String> result = new ArrayList<>();
+    private List<Magazine> combination(List<String> hashtags, boolean[] visited, int start, int n, int r, String email) {
+        List<Magazine> result = new ArrayList<>();
         if(r == 0) {
+            List<String> priorityHashtags = new ArrayList<>();
             for (int i = 0; i < n; i++) {
                 if (visited[i]) {
-                    result.add(hashtags.get(i));
+                    priorityHashtags.add(hashtags.get(i));
                 }
             }
-            return result;
+            return magazineRepositoryCustom.findMagazineByHashtagAndNotWriter(priorityHashtags, email);
         }
 
         for(int i = start; i < n; i++) {
             visited[i] = true;
-            result = combination(hashtags, visited, i + 1, n, r - 1);
+            result.addAll(combination(hashtags, visited, i + 1, n, r - 1, email));
             visited[i] = false;
         }
         return result;
