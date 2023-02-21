@@ -212,7 +212,7 @@ public class MagazineServiceTest {
 
         // 2: 매거진 대량 양산용 멤버
         member = memberRepository.findByEmail("member2@test.com").get();
-        // 2-1) TOP3 설정
+        // 2-1) 3개 일치
         Category category1 = categoryRepository.findMemberCategory("top3", member.getEmail()).get();
 
         scrapService.save(scrapRequest(category1.getId(), "IT", "개발", "백엔드"), null, member.getEmail());
@@ -229,7 +229,7 @@ public class MagazineServiceTest {
 
         magazineService.save(magazineRequest, member.getEmail());
 
-        // 2-2) 최근 매거진 해시태그
+        // 2-2) 1개 일치
         Category category2 = categoryRepository.findMemberCategory("latest", member.getEmail()).get();
 
         scrapService.save(scrapRequest(category2.getId(), "맛집", "무관한", "해시태그"), null, member.getEmail());
@@ -244,7 +244,7 @@ public class MagazineServiceTest {
 
         magazineService.save(magazineRequest, member.getEmail());
 
-        // 2-2) 최근 매거진 해시태그 (우선순위 더 높음)
+        // 2-2) 2개 일치
         scrapService.save(scrapRequest(category2.getId(), "맛집", "IT", "해시태그"), null, member.getEmail());
         coverId = saveCover(member, category2, "2개 매거진");
 
@@ -366,10 +366,24 @@ public class MagazineServiceTest {
         // given
 
         // when
-        List<MagazineListResponse> response = magazineService.recommendedMagazineByMember("member1@test.com");
+        List<MagazineListResponse> recommendedMagazines = magazineService.recommendedMagazineByMember("member1@test.com");
 
         // then
-        assertThat(response.size()).isEqualTo(3);
+        assertThat(recommendedMagazines.size()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("매거진 검색")
+    void searchMagazineTest() {
+        // given
+        String keyword = "완전";
+
+        // when
+        List<MagazineListResponse> searchMagazines = magazineService.findMagazineByHashtag(keyword);
+
+        // then
+        assertThat(searchMagazines.size()).isEqualTo(1);
+        assertThat(searchMagazines.get(0).getTitle()).isEqualTo("무관 매거진");
     }
 
     @Test
