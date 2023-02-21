@@ -363,8 +363,9 @@ public class MagazineService {
         List<HashTagResponse> hashTagResponses = hashtagRepository.getHashtagAnalysisResults(hashtagFilterCond, email);
 
         hashtags = new ArrayList<>();
-        for(HashTagResponse hashtag : hashTagResponses) {
-            hashtags.add(hashtag.getTag());
+        // '기타' 태그 제외
+        for(int i = 0; i < 3; i++) {
+            hashtags.add(hashTagResponses.get(i).getTag());
         }
 
         // 2-2. 사용자의 해시태그를 바탕으로 Magazine 찾기
@@ -432,8 +433,10 @@ public class MagazineService {
 
         // 겹치는 해시태그가 많은 순서
         for(int i = hashtags.size(); i > 0 ; i--) {
-            List<String> searchHashtags = combination(hashtags, visited, 0, hashtags.size(), i);
-            findMagazines.addAll(magazineRepositoryCustom.findMagazineByHashtagAndNotWriter(searchHashtags, email));
+            List<String> priorityHash = combination(hashtags, visited, 0, hashtags.size(), i);
+
+            findMagazines.addAll(
+                    magazineRepositoryCustom.findMagazineByHashtagAndNotWriter(priorityHash, email));
         }
 
         return findMagazines;
@@ -443,20 +446,17 @@ public class MagazineService {
     private List<String> combination(List<String> hashtags, boolean[] visited, int start, int n, int r) {
         List<String> result = new ArrayList<>();
         if(r == 0) {
-            System.out.print("해시태그 종류 : ");
             for (int i = 0; i < n; i++) {
                 if (visited[i]) {
                     result.add(hashtags.get(i));
-                    System.out.print(hashtags.get(i) + ", ");
                 }
             }
-            System.out.println();
             return result;
         }
 
         for(int i = start; i < n; i++) {
             visited[i] = true;
-            combination(hashtags, visited, i + 1, n, r - 1);
+            result = combination(hashtags, visited, i + 1, n, r - 1);
             visited[i] = false;
         }
         return result;
