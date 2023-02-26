@@ -330,14 +330,13 @@ public class MagazineService {
         List<Hashtag> findHashtags = hashtagRepository.findByMember(member);
 
         if(findHashtags.isEmpty()) {
-            //TODO : 스크랩 제작 이력이 없다면 가장 많은 퍼스널 무드를 받은 매거진 20개 추천
-
+            findMagazines = magazineRepository.findTop20MagazineByColor();
+        } else {
+            for(Hashtag h : findHashtags) {
+                hashtags.add(h.getTag());
+            }
+            findMagazines = findMagazineByHashtagOrderByPriority(email, hashtags);
         }
-
-        for(Hashtag h : findHashtags) {
-            hashtags.add(h.getTag());
-        }
-        findMagazines = findMagazineByHashtagOrderByPriority(email, hashtags);
 
         if(findMagazines.size() < RECOMMENDED_TOTAL_SIZE) {
             return findMagazines;

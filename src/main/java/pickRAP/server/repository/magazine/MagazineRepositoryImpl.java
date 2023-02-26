@@ -1,15 +1,14 @@
 package pickRAP.server.repository.magazine;
 
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import pickRAP.server.domain.category.Category;
 import pickRAP.server.domain.magazine.Magazine;
 
 import java.util.List;
 
 import static pickRAP.server.domain.hashtag.QHashtag.hashtag;
+import static pickRAP.server.domain.magazine.QColor.color;
 import static pickRAP.server.domain.magazine.QMagazine.magazine;
 import static pickRAP.server.domain.magazine.QMagazinePage.magazinePage;
 import static pickRAP.server.domain.member.QMember.member;
@@ -62,6 +61,17 @@ public class MagazineRepositoryImpl implements MagazineRepositoryCustom{
                 .join(scrapHashtag.hashtag, hashtag)
                 .where(builder)
                 .distinct().fetch();
+    }
+
+    @Override
+    public List<Magazine> findTop20MagazineByColor() {
+        return queryFactory
+                .select(magazine)
+                .innerJoin(magazine.colors, color)
+                .groupBy(magazine.id)
+                .orderBy(color.count().desc())
+                .limit(20)
+                .fetch();
     }
 
 }
