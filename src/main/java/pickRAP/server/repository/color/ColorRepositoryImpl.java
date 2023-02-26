@@ -89,4 +89,15 @@ public class ColorRepositoryImpl implements ColorRepositoryCustom{
                 .fetch();
     }
 
+    @Override
+    public Magazine findMagazineByColor(ColorType colorType) {
+        return jpaQueryFactory
+                .select(magazine)
+                .innerJoin(magazine.colors, color)
+                .where(color.colorType.eq(colorType))
+                .groupBy(magazine.id)
+                .orderBy(color.count().desc())
+                .fetchFirst();
+    }
+
 }

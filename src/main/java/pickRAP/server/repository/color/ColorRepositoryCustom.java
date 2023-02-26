@@ -15,4 +15,6 @@ public interface ColorRepositoryCustom {
 
     List<Magazine> findTop20MagazinesByColor();
 
+    Magazine findMagazineByColor(ColorType colorType);
+
 }

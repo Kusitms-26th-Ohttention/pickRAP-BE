@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pickRAP.server.common.BaseException;
 import pickRAP.server.controller.dto.analysis.HashTagResponse;
 import pickRAP.server.controller.dto.analysis.HashtagFilterCondition;
+import pickRAP.server.controller.dto.analysis.PersonalMoodResponse;
 import pickRAP.server.controller.dto.magazine.*;
 import pickRAP.server.domain.hashtag.Hashtag;
 import pickRAP.server.domain.magazine.Color;
@@ -307,7 +308,7 @@ public class MagazineService {
             result.addAll(getRecommendationForLatestMagazine(email, latestCreatedMagazine));
             result.addAll(getRecommendationForTop3(email));
             result.addAll(getRecommendationForRespondedMagazine(email, member));
-            result.addAll(getRecommendationForPersonalMood());
+            result.addAll(getRecommendationForPersonalMood(member));
         }
 
         List<MagazineListResponse> collect = result.stream()
@@ -408,15 +409,17 @@ public class MagazineService {
     }
 
     // 추천 정책 4번 : 사용자 퍼스널 무든 분석 결과와 같은 반응을 가장 많이 받은 매거진 추천 (15%)
-    public List<Magazine> getRecommendationForPersonalMood() {
-        List<String> hashtags;
-        List<Magazine> findMagazines;
+    public List<Magazine> getRecommendationForPersonalMood(Member member) {
+        List<Magazine> findMagazines = new ArrayList<>();
 
-        // 1. 사용자의 퍼스널 무드 분석 결과 찾기
-        // 2. 그 퍼스널 무드(컬러)를 가장 많이 얻은 매거진 찾기
-        // 3. 그 매거진의 해시태그를 사용한 매거진 찾기
+        List<PersonalMoodResponse> personalMoodResponses = colorRepository.getPersonalMoodAnalysisResults(member);
 
-        return null;
+        for(PersonalMoodResponse r : personalMoodResponses) {
+            ColorType colorType = ColorType.valueOf(r.getColorStyle());
+            findMagazines.add(colorRepository.findMagazineByColor(colorType));
+        }
+
+        return findMagazines;
     }
 
     private int calculateRecommendationSize(int rate) {
