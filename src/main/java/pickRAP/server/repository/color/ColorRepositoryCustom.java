@@ -13,4 +13,5 @@ public interface ColorRepositoryCustom {
 
     List<PersonalMoodResponse> getPersonalMoodAnalysisResults(Member member);
 
+    List<Magazine> findTop20MagazineByColor();
 }

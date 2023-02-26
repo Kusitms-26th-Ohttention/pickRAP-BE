@@ -330,7 +330,7 @@ public class MagazineService {
         List<Hashtag> findHashtags = hashtagRepository.findByMember(member);
 
         if(findHashtags.isEmpty()) {
-            findMagazines = magazineRepository.findTop20MagazineByColor();
+            findMagazines = colorRepository.findTop20MagazineByColor();
         } else {
             for(Hashtag h : findHashtags) {
                 hashtags.add(h.getTag());
@@ -392,6 +392,8 @@ public class MagazineService {
         List<String> hashtags = new ArrayList<>();
         List<Magazine> findMagazines = new ArrayList<>();
 
+        // 1. 사용자가 반응한 매거진 찾기
+        // 2. 그 매거진의 해시태그를 사용한 매거진 찾기
 
         return findMagazines;
     }
@@ -400,6 +402,10 @@ public class MagazineService {
     public List<Magazine> getRecommendationForPersonalMood() {
         List<String> hashtags = new ArrayList<>();
         List<Magazine> findMagazines = new ArrayList<>();
+
+        // 1. 사용자의 퍼스널 무드 분석 결과 찾기
+        // 2. 그 퍼스널 무드(컬러)를 가장 많이 얻은 매거진 찾기
+        // 3. 그 매거진의 해시태그를 사용한 매거진 찾기
 
         return findMagazines;
     }
