@@ -36,11 +36,12 @@ import static pickRAP.server.common.BaseExceptionStatus.*;
 @RequiredArgsConstructor
 public class MagazineService {
 
-    final static int MAX_TEXT_LENGTH = 200;
-    final static int MAX_TITLE_LENGTH = 15;
+    private final int MAX_TEXT_LENGTH = 200;
+    private final int MAX_TITLE_LENGTH = 15;
 
     final static int RECOMMENDED_FIRST_SIZE = 8;
     final static int RECOMMENDED_SECOND_SIZE = 6;
+    private final int RECOMMENDED_TOTAL_SIZE = 20;
 
     private final MemberRepository memberRepository;
     private final MagazineRepository magazineRepository;
@@ -300,67 +301,19 @@ public class MagazineService {
 
     @Transactional
     public List<MagazineListResponse> recommendedMagazineByMember(String email) {
-        // 최종 추천 매거진을 수집
         List<Magazine> result = new ArrayList<>();
 
-        List<String> hashtags = new ArrayList<>();
-        List<Magazine> findMagazines = new ArrayList<>();
-
-        // 1-1. 사용자의 최근 제작된 3개의 매거진의 해시태그 사용하기
         Member member = memberRepository.findByEmail(email).orElseThrow();
         List<Magazine> latestCreatedMagazine = magazineRepository.findTop3ByMemberOrderByCreateTimeDesc(member);
 
-        if (latestCreatedMagazine.size() == 0) {
-            // 사용자의 매거진 제작 이력이 없다면 스크랩 해시태그 기준 추천
-            List<Hashtag> findHashtags = hashtagRepository.findByMember(member);
-
-            if(hashtags.size() == 0) {
-                //TODO : 스크랩 제작 이력이 없다면 가장 많은 퍼스널 무드를 받은 매거진 20개 추천
-
-            }
-
-            for(Hashtag h : findHashtags) {
-                hashtags.add(h.getTag());
-            }
+        if (latestCreatedMagazine.isEmpty()) {
+            result.addAll(getRecommendationForNoMagazine(email, member));
+        } else {
+            result.addAll(getRecommendationForLatestMagazine(email, latestCreatedMagazine));
+            result.addAll(getRecommendationForTop3(email));
+            result.addAll(getRecommendationForRespondedMagazine());
+            result.addAll(getRecommendationForPersonalMood());
         }
-        else {
-            hashtags = getHashtagsInMagazine(latestCreatedMagazine);
-        }
-
-        findMagazines = findMagazineByHashtagOrderByPriority(findMagazines, hashtags, email);
-
-        int index = 0;
-        while(result.size() < RECOMMENDED_FIRST_SIZE
-                && findMagazines.size() > index) {
-            result.add(findMagazines.get(index));
-            result = magazineDeduplication(result);
-            index++;
-        }
-
-        HashtagFilterCondition hashtagFilterCond = HashtagFilterCondition.builder()
-                .filter("all")
-                .build();
-
-        List<HashTagResponse> hashTagResponses = hashtagRepository.getHashtagAnalysisResults(hashtagFilterCond, email);
-
-        hashtags = new ArrayList<>();
-        // '기타' 태그 제외
-        for(int i = 0; i < 3; i++) {
-            hashtags.add(hashTagResponses.get(i).getTag());
-        }
-
-        findMagazines = findMagazineByHashtagOrderByPriority(findMagazines, hashtags, email);
-
-        index = 0;
-        while(result.size() < RECOMMENDED_FIRST_SIZE + RECOMMENDED_SECOND_SIZE
-                && findMagazines.size() > index) {
-            result.add(findMagazines.get(index));
-            result = magazineDeduplication(result);
-            index++;
-        }
-
-        //TODO : 3-1) 사용자가 반응한 매거진 해시태그 기준 추천 - 15%
-        //TODO : 3-2) 사용자의 퍼스널 무드 분석 결과와 같은 반응을 받은 매거진 기준 추천 - 15%
 
         List<MagazineListResponse> collect = result.stream()
                 .map(m -> MagazineListResponse.builder()
@@ -371,6 +324,88 @@ public class MagazineService {
                 .collect(Collectors.toList());
 
         return collect;
+    }
+
+
+    // 추천 정책 0번 : 매거진 제작 이력이 없는 사용자
+    public List<Magazine> getRecommendationForNoMagazine(String email, Member member) {
+        List<String> hashtags = new ArrayList<>();
+        List<Magazine> findMagazines = new ArrayList<>();
+
+        List<Hashtag> findHashtags = hashtagRepository.findByMember(member);
+
+        if(findHashtags.isEmpty()) {
+            //TODO : 스크랩 제작 이력이 없다면 가장 많은 퍼스널 무드를 받은 매거진 20개 추천
+
+        }
+
+        for(Hashtag h : findHashtags) {
+            hashtags.add(h.getTag());
+        }
+
+        return findMagazines;
+    }
+
+    // 추천 정책 1번 : 가장 최근 제작한 3개의 매거진 해시태그 기준 추천 (40%)
+    public List<Magazine> getRecommendationForLatestMagazine(String email, List<Magazine> latestCreatedMagazine){
+        List<String> hashtags = getHashtagsInMagazine(latestCreatedMagazine);
+        List<Magazine> findMagazines = findMagazineByHashtagOrderByPriority(email, hashtags);
+
+        int recommendationSize = calculateRecommendationSize(40);
+
+        if(findMagazines.size() < recommendationSize) {
+            return findMagazines;
+        }
+        else {
+            return findMagazines.subList(0, recommendationSize);
+        }
+    }
+
+    // 추천 정책 2번 : TOP3 해시태그 기준 추천 (30%)
+    public List<Magazine> getRecommendationForTop3(String email) {
+        List<String> hashtags = new ArrayList<>();
+        List<Magazine> findMagazines = new ArrayList<>();
+
+        HashtagFilterCondition hashtagFilterCond = HashtagFilterCondition.builder()
+                .filter("all")
+                .build();
+
+        List<HashTagResponse> hashTagResponses = hashtagRepository.getHashtagAnalysisResults(hashtagFilterCond, email);
+
+        // '기타' 태그 제외
+        for(int i = 0; i < 3; i++) { hashtags.add(hashTagResponses.get(i).getTag()); }
+
+        findMagazines = findMagazineByHashtagOrderByPriority(email, hashtags);
+
+        int recommendationSize = calculateRecommendationSize(30);
+
+        if(findMagazines.size() < recommendationSize) {
+            return findMagazines;
+        }
+        else {
+            return findMagazines.subList(0, recommendationSize);
+        }
+    }
+
+    // 추천 정책 3번 : 사용자가 반응한 매거진 해시태그 기준 추천 (15%)
+    public List<Magazine> getRecommendationForRespondedMagazine() {
+        List<String> hashtags = new ArrayList<>();
+        List<Magazine> findMagazines = new ArrayList<>();
+
+
+        return findMagazines;
+    }
+
+    // 추천 정책 4번 : 사용자 퍼스널 무든 분석 결과와 같은 반응을 가장 많이 받은 매거진 추천 (15%)
+    public List<Magazine> getRecommendationForPersonalMood() {
+        List<String> hashtags = new ArrayList<>();
+        List<Magazine> findMagazines = new ArrayList<>();
+
+        return findMagazines;
+    }
+
+    private int calculateRecommendationSize(int rate) {
+        return RECOMMENDED_TOTAL_SIZE * (int)(0.01 * rate);
     }
 
     private List<String> getHashtagsInMagazine(List<Magazine> magazine) {
@@ -391,22 +426,18 @@ public class MagazineService {
         return DeduplicationUtils.deduplication(hashtags);
     }
 
-    // List Object 중복제거
-    private List<Magazine> magazineDeduplication(List<Magazine> magazines) {
-        return DeduplicationUtils.deduplication(magazines, Magazine::getId);
-    }
-
     // 해시태그로 매거진 찾기 (우선순위)
-    private List<Magazine> findMagazineByHashtagOrderByPriority(List<Magazine> findMagazines,
-                                                             List<String> hashtags, String email) {
+    private List<Magazine> findMagazineByHashtagOrderByPriority(String email, List<String> hashtags) {
+        List<Magazine> findMagazines = new ArrayList<>();
         boolean[] visited = new boolean[hashtags.size()];
 
         // 겹치는 해시태그가 많은 순서
         for(int i = hashtags.size(); i > 0 ; i--) {
-            findMagazines.addAll(combinationOfHashcode(hashtags, visited, 0, hashtags.size(), i, email));
+            findMagazines.addAll(
+                    combinationOfHashcode(hashtags, visited, 0, hashtags.size(), i, email));
         }
 
-        return magazineDeduplication(findMagazines);
+        return DeduplicationUtils.deduplication(findMagazines, Magazine::getId);
     }
 
     // 조합(백트래킹) : 순서 상관없는 경우의 수
