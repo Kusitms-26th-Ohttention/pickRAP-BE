@@ -16,11 +16,11 @@ import static pickRAP.server.domain.scrap.QScrapHashtag.scrapHashtag;
 
 @RequiredArgsConstructor
 public class MagazineRepositoryImpl implements MagazineRepositoryCustom{
-    private final JPAQueryFactory queryFactory;
+    private final JPAQueryFactory jpaQueryFactory;
 
     @Override
     public List<Magazine> findMemberMagazines(String email) {
-        return queryFactory
+        return jpaQueryFactory
                 .selectFrom(magazine)
                 .join(magazine.member, member)
                 .where(member.email.eq(email))
@@ -30,7 +30,7 @@ public class MagazineRepositoryImpl implements MagazineRepositoryCustom{
 
     @Override
     public List<Magazine> findMagazineByHashtag(String keyword) {
-        return queryFactory
+        return jpaQueryFactory
                 .selectFrom(magazine)
                 .join(magazine.pages, magazinePage)
                 .join(magazinePage.scrap, scrap)
@@ -52,7 +52,7 @@ public class MagazineRepositoryImpl implements MagazineRepositoryCustom{
         builder.and(magazine.openStatus.eq(true));
         builder.and(magazine.member.email.ne(email));
 
-        return queryFactory
+        return jpaQueryFactory
                 .selectFrom(magazine)
                 .join(magazine.pages, magazinePage)
                 .join(magazinePage.scrap, scrap)
