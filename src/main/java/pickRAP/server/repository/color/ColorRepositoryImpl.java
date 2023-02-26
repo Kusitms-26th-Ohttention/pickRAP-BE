@@ -79,7 +79,7 @@ public class ColorRepositoryImpl implements ColorRepositoryCustom{
     }
 
     @Override
-    public List<Magazine> findTop20MagazineByColor() {
+    public List<Magazine> findTop20MagazinesByColor() {
         return jpaQueryFactory
                 .select(magazine)
                 .innerJoin(magazine.colors, color)

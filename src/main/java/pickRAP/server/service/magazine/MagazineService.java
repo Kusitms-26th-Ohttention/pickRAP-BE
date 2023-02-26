@@ -330,7 +330,7 @@ public class MagazineService {
         List<Hashtag> findHashtags = hashtagRepository.findByMember(member);
 
         if(findHashtags.isEmpty()) {
-            findMagazines = colorRepository.findTop20MagazineByColor();
+            findMagazines = colorRepository.findTop20MagazinesByColor();
         } else {
             for(Hashtag h : findHashtags) {
                 hashtags.add(h.getTag());
@@ -393,6 +393,7 @@ public class MagazineService {
         List<Magazine> findMagazines = new ArrayList<>();
 
         // 1. 사용자가 반응한 매거진 찾기
+
         // 2. 그 매거진의 해시태그를 사용한 매거진 찾기
 
         return findMagazines;
