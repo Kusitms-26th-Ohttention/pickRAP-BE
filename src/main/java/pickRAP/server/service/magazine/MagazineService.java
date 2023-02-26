@@ -20,7 +20,6 @@ import pickRAP.server.repository.color.ColorRepository;
 import pickRAP.server.repository.hashtag.HashtagRepository;
 import pickRAP.server.repository.magazine.MagazinePageRepository;
 import pickRAP.server.repository.magazine.MagazineRepository;
-import pickRAP.server.repository.magazine.MagazineRepositoryCustom;
 import pickRAP.server.repository.member.MemberRepository;
 import pickRAP.server.repository.scrap.ScrapHashtagRepository;
 import pickRAP.server.repository.scrap.ScrapRepository;
@@ -38,14 +37,10 @@ public class MagazineService {
 
     private final int MAX_TEXT_LENGTH = 200;
     private final int MAX_TITLE_LENGTH = 15;
-
-    final static int RECOMMENDED_FIRST_SIZE = 8;
-    final static int RECOMMENDED_SECOND_SIZE = 6;
     private final int RECOMMENDED_TOTAL_SIZE = 20;
 
     private final MemberRepository memberRepository;
     private final MagazineRepository magazineRepository;
-    private final MagazineRepositoryCustom magazineRepositoryCustom;
     private final MagazinePageRepository magazinePageRepository;
     private final ScrapRepository scrapRepository;
     private final TextService textService;
@@ -83,7 +78,7 @@ public class MagazineService {
 
     @Transactional(readOnly = true)
     public List<MagazineListResponse> findMagazines(String email) {
-        List<Magazine> findMagazines = magazineRepositoryCustom.findMemberMagazines(email);
+        List<Magazine> findMagazines = magazineRepository.findMemberMagazines(email);
 
         List<MagazineListResponse> collect = findMagazines.stream()
                 .map(m -> MagazineListResponse.builder()
@@ -286,7 +281,7 @@ public class MagazineService {
 
     @Transactional
     public List<MagazineListResponse> findMagazineByHashtag(String hashtag) {
-        List<Magazine> findMagazines = magazineRepositoryCustom.findMagazineByHashtag(hashtag);
+        List<Magazine> findMagazines = magazineRepository.findMagazineByHashtag(hashtag);
 
         List<MagazineListResponse> collect = findMagazines.stream()
                 .map(m -> MagazineListResponse.builder()
@@ -342,8 +337,14 @@ public class MagazineService {
         for(Hashtag h : findHashtags) {
             hashtags.add(h.getTag());
         }
+        findMagazines = findMagazineByHashtagOrderByPriority(email, hashtags);
 
-        return findMagazines;
+        if(findMagazines.size() < RECOMMENDED_TOTAL_SIZE) {
+            return findMagazines;
+        }
+        else {
+            return findMagazines.subList(0, RECOMMENDED_TOTAL_SIZE);
+        }
     }
 
     // 추천 정책 1번 : 가장 최근 제작한 3개의 매거진 해시태그 기준 추천 (40%)
@@ -434,14 +435,14 @@ public class MagazineService {
         // 겹치는 해시태그가 많은 순서
         for(int i = hashtags.size(); i > 0 ; i--) {
             findMagazines.addAll(
-                    combinationOfHashcode(hashtags, visited, 0, hashtags.size(), i, email));
+                    combinationOfHashtag(hashtags, visited, 0, hashtags.size(), i, email));
         }
 
         return DeduplicationUtils.deduplication(findMagazines, Magazine::getId);
     }
 
     // 조합(백트래킹) : 순서 상관없는 경우의 수
-    private List<Magazine> combinationOfHashcode(List<String> hashtags, boolean[] visited, int start, int n, int r, String email) {
+    private List<Magazine> combinationOfHashtag(List<String> hashtags, boolean[] visited, int start, int n, int r, String email) {
         List<Magazine> result = new ArrayList<>();
         if(r == 0) {
             List<String> priorityHashtags = new ArrayList<>();
@@ -450,12 +451,12 @@ public class MagazineService {
                     priorityHashtags.add(hashtags.get(i));
                 }
             }
-            return magazineRepositoryCustom.findMagazineByHashtagAndNotWriter(priorityHashtags, email);
+            return magazineRepository.findMagazineByHashtagAndNotWriter(priorityHashtags, email);
         }
 
         for(int i = start; i < n; i++) {
             visited[i] = true;
-            result.addAll(combinationOfHashcode(hashtags, visited, i + 1, n, r - 1, email));
+            result.addAll(combinationOfHashtag(hashtags, visited, i + 1, n, r - 1, email));
             visited[i] = false;
         }
         return result;
