@@ -4,10 +4,12 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import pickRAP.server.domain.magazine.Magazine;
+import pickRAP.server.domain.member.Member;
 
 import java.util.List;
 
 import static pickRAP.server.domain.hashtag.QHashtag.hashtag;
+import static pickRAP.server.domain.magazine.QColor.color;
 import static pickRAP.server.domain.magazine.QMagazine.magazine;
 import static pickRAP.server.domain.magazine.QMagazinePage.magazinePage;
 import static pickRAP.server.domain.member.QMember.member;
@@ -62,4 +64,12 @@ public class MagazineRepositoryImpl implements MagazineRepositoryCustom{
                 .distinct().fetch();
     }
 
+    @Override
+    public List<Magazine> findMagazinesColorByMember(Member member) {
+        return jpaQueryFactory
+                .select(magazine)
+                .join(magazine.colors, color)
+                .where(color.member.eq(member))
+                .fetch();
+    }
 }

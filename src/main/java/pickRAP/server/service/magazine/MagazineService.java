@@ -306,7 +306,7 @@ public class MagazineService {
         } else {
             result.addAll(getRecommendationForLatestMagazine(email, latestCreatedMagazine));
             result.addAll(getRecommendationForTop3(email));
-            result.addAll(getRecommendationForRespondedMagazine());
+            result.addAll(getRecommendationForRespondedMagazine(email, member));
             result.addAll(getRecommendationForPersonalMood());
         }
 
@@ -364,7 +364,7 @@ public class MagazineService {
     // 추천 정책 2번 : TOP3 해시태그 기준 추천 (30%)
     public List<Magazine> getRecommendationForTop3(String email) {
         List<String> hashtags = new ArrayList<>();
-        List<Magazine> findMagazines = new ArrayList<>();
+        List<Magazine> findMagazines;
 
         HashtagFilterCondition hashtagFilterCond = HashtagFilterCondition.builder()
                 .filter("all")
@@ -388,27 +388,35 @@ public class MagazineService {
     }
 
     // 추천 정책 3번 : 사용자가 반응한 매거진 해시태그 기준 추천 (15%)
-    public List<Magazine> getRecommendationForRespondedMagazine() {
-        List<String> hashtags = new ArrayList<>();
-        List<Magazine> findMagazines = new ArrayList<>();
+    public List<Magazine> getRecommendationForRespondedMagazine(String email, Member member) {
+        List<String> hashtags;
+        List<Magazine> findMagazines;
 
-        // 1. 사용자가 반응한 매거진 찾기
+        findMagazines = magazineRepository.findMagazinesColorByMember(member);
+        hashtags = getHashtagsInMagazine(findMagazines);
 
-        // 2. 그 매거진의 해시태그를 사용한 매거진 찾기
+        findMagazines = findMagazineByHashtagOrderByPriority(email, hashtags);
 
-        return findMagazines;
+        int recommendationSize = calculateRecommendationSize(15);
+
+        if(findMagazines.size() < recommendationSize) {
+            return findMagazines;
+        }
+        else {
+            return findMagazines.subList(0, recommendationSize);
+        }
     }
 
     // 추천 정책 4번 : 사용자 퍼스널 무든 분석 결과와 같은 반응을 가장 많이 받은 매거진 추천 (15%)
     public List<Magazine> getRecommendationForPersonalMood() {
-        List<String> hashtags = new ArrayList<>();
-        List<Magazine> findMagazines = new ArrayList<>();
+        List<String> hashtags;
+        List<Magazine> findMagazines;
 
         // 1. 사용자의 퍼스널 무드 분석 결과 찾기
         // 2. 그 퍼스널 무드(컬러)를 가장 많이 얻은 매거진 찾기
         // 3. 그 매거진의 해시태그를 사용한 매거진 찾기
 
-        return findMagazines;
+        return null;
     }
 
     private int calculateRecommendationSize(int rate) {
