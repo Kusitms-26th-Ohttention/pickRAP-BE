@@ -82,7 +82,9 @@ public class ColorRepositoryImpl implements ColorRepositoryCustom{
     public List<Magazine> findTop20MagazinesByColor() {
         return jpaQueryFactory
                 .select(magazine)
-                .innerJoin(magazine.colors, color)
+                .from(magazine)
+                .innerJoin(color)
+                .on(magazine.eq(color.magazine))
                 .groupBy(magazine.id)
                 .orderBy(color.count().desc())
                 .limit(20)
