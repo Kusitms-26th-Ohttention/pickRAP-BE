@@ -280,7 +280,7 @@ public class MagazineService {
         }
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<MagazineListResponse> findMagazineByHashtag(String hashtag) {
         List<Magazine> findMagazines = magazineRepository.findMagazineByHashtag(hashtag);
 
@@ -295,7 +295,7 @@ public class MagazineService {
         return collect;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<MagazineListResponse> recommendedMagazineByMember(String email) {
         List<Magazine> result = new ArrayList<>();
 
@@ -303,11 +303,11 @@ public class MagazineService {
         List<Magazine> latestCreatedMagazine = magazineRepository.findTop3ByMemberOrderByCreateTimeDesc(member);
 
         if (latestCreatedMagazine.isEmpty()) {
-            result.addAll(getRecommendationForNoMagazine(email, member));
+            result.addAll(getRecommendationForNoMagazine(member));
         } else {
-            result.addAll(getRecommendationForLatestMagazine(email, latestCreatedMagazine));
-            result.addAll(getRecommendationForTop3(email));
-            result.addAll(getRecommendationForRespondedMagazine(email, member));
+            result.addAll(getRecommendationForLatestMagazine(member, latestCreatedMagazine));
+            result.addAll(getRecommendationForTop3(member));
+            result.addAll(getRecommendationForRespondedMagazine(member));
             result.addAll(getRecommendationForPersonalMood(member));
         }
 
@@ -324,7 +324,8 @@ public class MagazineService {
 
 
     // 추천 정책 0번 : 매거진 제작 이력이 없는 사용자
-    public List<Magazine> getRecommendationForNoMagazine(String email, Member member) {
+    @Transactional(readOnly = true)
+    public List<Magazine> getRecommendationForNoMagazine(Member member) {
         List<String> hashtags = new ArrayList<>();
         List<Magazine> findMagazines = new ArrayList<>();
 
@@ -336,7 +337,7 @@ public class MagazineService {
             for(Hashtag h : findHashtags) {
                 hashtags.add(h.getTag());
             }
-            findMagazines = findMagazineByHashtagOrderByPriority(email, hashtags);
+            findMagazines = findMagazineByHashtagOrderByPriority(member.getEmail(), hashtags);
         }
 
         if(findMagazines.size() < RECOMMENDED_TOTAL_SIZE) {
@@ -348,9 +349,10 @@ public class MagazineService {
     }
 
     // 추천 정책 1번 : 가장 최근 제작한 3개의 매거진 해시태그 기준 추천 (40%)
-    public List<Magazine> getRecommendationForLatestMagazine(String email, List<Magazine> latestCreatedMagazine){
+    @Transactional(readOnly = true)
+    public List<Magazine> getRecommendationForLatestMagazine(Member member, List<Magazine> latestCreatedMagazine){
         List<String> hashtags = getHashtagsInMagazine(latestCreatedMagazine);
-        List<Magazine> findMagazines = findMagazineByHashtagOrderByPriority(email, hashtags);
+        List<Magazine> findMagazines = findMagazineByHashtagOrderByPriority(member.getEmail(), hashtags);
 
         int recommendationSize = calculateRecommendationSize(40);
 
@@ -363,7 +365,8 @@ public class MagazineService {
     }
 
     // 추천 정책 2번 : TOP3 해시태그 기준 추천 (30%)
-    public List<Magazine> getRecommendationForTop3(String email) {
+    @Transactional(readOnly = true)
+    public List<Magazine> getRecommendationForTop3(Member member) {
         List<String> hashtags = new ArrayList<>();
         List<Magazine> findMagazines;
 
@@ -371,12 +374,12 @@ public class MagazineService {
                 .filter("all")
                 .build();
 
-        List<HashTagResponse> hashTagResponses = hashtagRepository.getHashtagAnalysisResults(hashtagFilterCond, email);
+        List<HashTagResponse> hashTagResponses = hashtagRepository.getHashtagAnalysisResults(hashtagFilterCond, member.getEmail());
 
         // '기타' 태그 제외
         for(int i = 0; i < 3; i++) { hashtags.add(hashTagResponses.get(i).getTag()); }
 
-        findMagazines = findMagazineByHashtagOrderByPriority(email, hashtags);
+        findMagazines = findMagazineByHashtagOrderByPriority(member.getEmail(), hashtags);
 
         int recommendationSize = calculateRecommendationSize(30);
 
@@ -389,14 +392,15 @@ public class MagazineService {
     }
 
     // 추천 정책 3번 : 사용자가 반응한 매거진 해시태그 기준 추천 (15%)
-    public List<Magazine> getRecommendationForRespondedMagazine(String email, Member member) {
+    @Transactional(readOnly = true)
+    public List<Magazine> getRecommendationForRespondedMagazine(Member member) {
         List<String> hashtags;
         List<Magazine> findMagazines;
 
         findMagazines = magazineRepository.findMagazinesColorByMember(member);
         hashtags = getHashtagsInMagazine(findMagazines);
 
-        findMagazines = findMagazineByHashtagOrderByPriority(email, hashtags);
+        findMagazines = findMagazineByHashtagOrderByPriority(member.getEmail(), hashtags);
 
         int recommendationSize = calculateRecommendationSize(15);
 
@@ -409,6 +413,7 @@ public class MagazineService {
     }
 
     // 추천 정책 4번 : 사용자 퍼스널 무든 분석 결과와 같은 반응을 가장 많이 받은 매거진 추천 (15%)
+    @Transactional(readOnly = true)
     public List<Magazine> getRecommendationForPersonalMood(Member member) {
         List<Magazine> findMagazines = new ArrayList<>();
 
