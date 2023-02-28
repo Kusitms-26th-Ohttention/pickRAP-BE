@@ -68,7 +68,9 @@ public class MagazineRepositoryImpl implements MagazineRepositoryCustom{
     public List<Magazine> findMagazinesColorByMember(Member member) {
         return jpaQueryFactory
                 .select(magazine)
-                .join(magazine.colors, color)
+                .from(magazine)
+                .innerJoin(color)
+                .on(magazine.eq(color.magazine))
                 .where(color.member.eq(member))
                 .fetch();
     }
