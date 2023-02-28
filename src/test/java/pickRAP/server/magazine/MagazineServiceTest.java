@@ -243,14 +243,26 @@ public class MagazineServiceTest {
     @DisplayName("매거진 검색")
     void searchMagazineTest() {
         // given
-        String keyword = "완전";
+        Member member = memberRepository.findByEmail(EMAIL_OK).get();
+        Category category = categoryRepository.findMemberCategory("여행", member.getEmail()).get();
+        List<Scrap> scrapList = scrapRepository.findByCategoryId(category.getId());
+
+        for(Scrap s : scrapList) {
+            scrapIds.add(s.getId());
+        }
+        List<MagazinePageRequest> magazinePageRequest = magazinePageRequests();
+        MagazineRequest magazineRequest = magazineRequest("매거진 제목", true, coverIds.get(0), magazinePageRequest);
+
+        magazineService.save(magazineRequest, member.getEmail());
+
+        String keyword = "대한";
 
         // when
         List<MagazineListResponse> searchMagazines = magazineService.findMagazineByHashtag(keyword);
 
         // then
         assertThat(searchMagazines.size()).isEqualTo(1);
-        assertThat(searchMagazines.get(0).getTitle()).isEqualTo("무관 매거진");
+        assertThat(searchMagazines.get(0).getTitle()).isEqualTo("매거진 제목");
     }
 
     @Test
