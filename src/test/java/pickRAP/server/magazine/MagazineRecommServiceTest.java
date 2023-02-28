@@ -281,23 +281,11 @@ public class MagazineRecommServiceTest {
         List<Magazine> respondedMagazineResult = magazineService.getRecommendationForRespondedMagazine(member);
         List<Magazine> personalMoodMagazineResult = magazineService.getRecommendationForPersonalMood(member);
 
-        print(latestMagazineResult);
-        print(Top3MagazineResult);
-        print(respondedMagazineResult);
-        print(personalMoodMagazineResult);
-
         //then
         assertThat(latestMagazineResult.size()).isEqualTo(8);
         assertThat(Top3MagazineResult.size()).isEqualTo(6);
         assertThat(respondedMagazineResult.size()).isEqualTo(3);
         assertThat(personalMoodMagazineResult.size()).isEqualTo(3);
 
-    }
-
-    private void print(List<Magazine> magazines) {
-        for(Magazine m : magazines) {
-            System.out.print(m.getTitle() + ", ");
-        }
-        System.out.println();
     }
 }
