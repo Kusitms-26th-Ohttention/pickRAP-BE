@@ -183,4 +183,16 @@ public class MagazineController {
         return ResponseEntity.ok(new BaseResponse(response));
     }
 
+    @GetMapping("/magazine/recommend")
+    @ApiOperation(value = "매거진 추천", notes = "최대 20개의 매거진 추천")
+    @ApiResponses({
+            @ApiResponse(responseCode = "500", description = "서버 예외")
+    })
+    public ResponseEntity<BaseResponse<List<MagazineListResponse>>> getRecommendedMagazineList() {
+        String email = authService.getUserEmail();
+        List<MagazineListResponse> response = magazineService.recommendedMagazineByMember(email);
+
+        return ResponseEntity.ok(new BaseResponse(response));
+    }
+
 }
