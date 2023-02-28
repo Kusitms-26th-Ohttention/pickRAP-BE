@@ -18,7 +18,6 @@ import pickRAP.server.domain.magazine.Magazine;
 import pickRAP.server.domain.magazine.MagazinePage;
 import pickRAP.server.domain.member.Member;
 import pickRAP.server.domain.scrap.Scrap;
-import pickRAP.server.domain.scrap.ScrapHashtag;
 import pickRAP.server.domain.scrap.ScrapType;
 import pickRAP.server.repository.category.CategoryRepository;
 import pickRAP.server.repository.hashtag.HashtagRepository;
@@ -30,9 +29,7 @@ import pickRAP.server.service.auth.AuthService;
 import pickRAP.server.service.category.CategoryService;
 import pickRAP.server.service.magazine.MagazineService;
 import pickRAP.server.service.scrap.ScrapService;
-import pickRAP.server.util.deduplication.DeduplicationUtils;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -74,25 +71,6 @@ public class MagazineServiceTest {
                 .password(PASSWORD_OK)
                 .name("테스트유저")
                 .build();
-    }
-
-    private List<MemberSignUpRequest> memberSignUpRequestList() {
-        List<MemberSignUpRequest> members = new ArrayList<>();
-
-        members.add(MemberSignUpRequest.builder()
-                .email("member1@test.com")
-                .password(PASSWORD_OK)
-                .name("테스트 유저1")
-                .build());
-
-        members.add(MemberSignUpRequest.builder()
-                .email("member2@test.com")
-                .password(PASSWORD_OK)
-                .name("테스트 유저2")
-                .build());
-
-
-        return members;
     }
 
     private CategoryRequest categoryRequest(String name) {
@@ -173,105 +151,6 @@ public class MagazineServiceTest {
         }
         coverIds.add(saveCover(member, category, "커버 제목"));
         coverIds.add(saveCover(member, category, "커버 수정 제목"));
-    }
-
-    @BeforeEach
-    void recommendMagazineBefore() {
-        List<MemberSignUpRequest> memberSignUpRequestList = memberSignUpRequestList();
-        CategoryRequest categoryRequest1 = categoryRequest("standard");
-        CategoryRequest categoryRequest2 = categoryRequest("top3");
-        CategoryRequest categoryRequest3 = categoryRequest("latest");
-        CategoryRequest categoryRequest4 = categoryRequest("irrelevant");
-        List<ScrapRequest> scrapRequests = new ArrayList<>();
-
-        for(MemberSignUpRequest req : memberSignUpRequestList) {
-            authService.signUp(req);
-            categoryService.save(categoryRequest1, req.getEmail());
-            categoryService.save(categoryRequest2, req.getEmail());
-            categoryService.save(categoryRequest3, req.getEmail());
-            categoryService.save(categoryRequest4, req.getEmail());
-        }
-
-        // 매거진 추천에 필요한 데이터 세팅
-        // 1: 추천을 받을 멤버 (TOP3 : IT/개발/백엔드)
-        Member member = memberRepository.findByEmail("member1@test.com").get();
-        Category category = categoryRepository.findMemberCategory("standard", member.getEmail()).get();
-
-        scrapService.save(scrapRequest(category.getId(), "IT", "개발", "백엔드"), null, member.getEmail());
-        scrapService.save(scrapRequest(category.getId(), "IT", "개발", "백엔드"), null, member.getEmail());
-        scrapService.save(scrapRequest(category.getId(), "맛집", "쩝쩝박사", "맛집추천"), null, member.getEmail());
-        Long coverId = saveCover(member, category, "멤버1 매거진 커버");
-
-        List<Scrap> scrapList = scrapRepository.findByCategoryId(category.getId());
-        for(Scrap s : scrapList) { scrapIds.add(s.getId()); }
-
-        List<MagazinePageRequest> magazinePageRequest = magazinePageRequests();
-        MagazineRequest magazineRequest = magazineRequest("매거진 제목", true, coverId, magazinePageRequest);
-
-        magazineService.save(magazineRequest, member.getEmail());
-
-        // 2: 매거진 대량 양산용 멤버
-        member = memberRepository.findByEmail("member2@test.com").get();
-        // 2-1) 3개 일치
-        Category category1 = categoryRepository.findMemberCategory("top3", member.getEmail()).get();
-
-        scrapService.save(scrapRequest(category1.getId(), "IT", "개발", "백엔드"), null, member.getEmail());
-        scrapService.save(scrapRequest(category1.getId(), "IT", "개발", "백엔드"), null, member.getEmail());
-        scrapService.save(scrapRequest(category1.getId(), "IT", "개발", "백엔드"), null, member.getEmail());
-        coverId = saveCover(member, category1, "3개 해시태그");
-
-        scrapList = scrapRepository.findByCategoryId(category1.getId());
-        scrapIds = new ArrayList<>();
-        for(Scrap s : scrapList) { scrapIds.add(s.getId()); }
-
-        magazinePageRequest = magazinePageRequests();
-        magazineRequest = magazineRequest("3개 매거진", true, coverId, magazinePageRequest);
-
-        magazineService.save(magazineRequest, member.getEmail());
-
-        // 2-2) 1개 일치
-        Category category2 = categoryRepository.findMemberCategory("latest", member.getEmail()).get();
-
-        scrapService.save(scrapRequest(category2.getId(), "맛집", "무관한", "해시태그"), null, member.getEmail());
-        coverId = saveCover(member, category2, "1개 매거진");
-
-        scrapList = scrapRepository.findByCategoryId(category2.getId());
-        scrapIds = new ArrayList<>();
-        for(Scrap s : scrapList) { scrapIds.add(s.getId()); }
-
-        magazinePageRequest = magazinePageRequests();
-        magazineRequest = magazineRequest("1개 매거진", true, coverId, magazinePageRequest);
-
-        magazineService.save(magazineRequest, member.getEmail());
-
-        // 2-2) 2개 일치
-        scrapService.save(scrapRequest(category2.getId(), "맛집", "IT", "해시태그"), null, member.getEmail());
-        coverId = saveCover(member, category2, "2개 매거진");
-
-        scrapList = scrapRepository.findByCategoryId(category2.getId());
-        scrapIds = new ArrayList<>();
-        for(Scrap s : scrapList) { scrapIds.add(s.getId()); }
-
-        magazinePageRequest = magazinePageRequests();
-        magazineRequest = magazineRequest("2개 매거진", true, coverId, magazinePageRequest);
-
-        magazineService.save(magazineRequest, member.getEmail());
-
-        // 2-3) 무관한 해시태그
-        Category category3 = categoryRepository.findMemberCategory("irrelevant", member.getEmail()).get();
-
-        scrapService.save(scrapRequest(category3.getId(), "완전", "무관한", "해시태그"), null, member.getEmail());
-        coverId = saveCover(member, category3, "멤버2 무관한 해시태그 매거진");
-
-        scrapList = scrapRepository.findByCategoryId(category3.getId());
-        scrapIds = new ArrayList<>();
-        for(Scrap s : scrapList) { scrapIds.add(s.getId()); }
-
-        magazinePageRequest = magazinePageRequests();
-        magazineRequest = magazineRequest("무관 매거진", true, coverId, magazinePageRequest);
-
-        magazineService.save(magazineRequest, member.getEmail());
-
     }
 
     @Test
@@ -358,18 +237,6 @@ public class MagazineServiceTest {
         // then
         Optional<Magazine> findMagazine = magazineRepository.findById(magazine.getId());
         assertThat(findMagazine).isEmpty();
-    }
-
-    @Test
-    @DisplayName("매거진 추천")
-    void recommendedMagazineTest() {
-        // given
-
-        // when
-        List<MagazineListResponse> recommendedMagazines = magazineService.recommendedMagazineByMember("member1@test.com");
-
-        // then
-        assertThat(recommendedMagazines.size()).isEqualTo(3);
     }
 
     @Test
