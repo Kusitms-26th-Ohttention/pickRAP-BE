@@ -348,6 +348,7 @@ public class MagazineService {
         }
     }
 
+
     // 추천 정책 1번 : 가장 최근 제작한 3개의 매거진 해시태그 기준 추천 (40%)
     @Transactional(readOnly = true)
     public List<Magazine> getRecommendationForLatestMagazine(Member member, List<Magazine> latestCreatedMagazine){
@@ -420,7 +421,7 @@ public class MagazineService {
         List<PersonalMoodResponse> personalMoodResponses = colorRepository.getPersonalMoodAnalysisResults(member);
 
         for(PersonalMoodResponse r : personalMoodResponses) {
-            ColorType colorType = ColorType.valueOf(r.getColorStyle());
+            ColorType colorType = ColorType.from(r.getColorStyle());
             findMagazines.add(colorRepository.findMagazineByColor(colorType));
         }
 
@@ -428,7 +429,7 @@ public class MagazineService {
     }
 
     private int calculateRecommendationSize(int rate) {
-        return RECOMMENDED_TOTAL_SIZE * (int)(0.01 * rate);
+        return (int)(RECOMMENDED_TOTAL_SIZE * (0.01 * rate));
     }
 
     private List<String> getHashtagsInMagazine(List<Magazine> magazine) {
