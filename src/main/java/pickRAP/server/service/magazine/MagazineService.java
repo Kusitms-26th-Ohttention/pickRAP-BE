@@ -336,7 +336,7 @@ public class MagazineService {
     @Transactional(readOnly = true)
     public List<Magazine> getRecommendationForNoMagazine(Member member) {
         List<String> hashtags = new ArrayList<>();
-        List<Magazine> findMagazines = new ArrayList<>();
+        List<Magazine> findMagazines;
 
         List<Hashtag> findHashtags = hashtagRepository.findByMember(member);
 
@@ -405,11 +405,8 @@ public class MagazineService {
     // 추천 정책 3번 : 사용자가 반응한 매거진 해시태그 기준 추천 (15%)
     @Transactional(readOnly = true)
     public List<Magazine> getRecommendationForRespondedMagazine(Member member) {
-        List<String> hashtags;
-        List<Magazine> findMagazines;
-
-        findMagazines = magazineRepository.findMagazinesColorByMember(member);
-        hashtags = getHashtagsInMagazine(findMagazines);
+        List<Magazine> findMagazines = magazineRepository.findMagazinesColorByMember(member);
+        List<String> hashtags = getHashtagsInMagazine(findMagazines);
 
         findMagazines = findMagazineByHashtagOrderByPriority(member.getEmail(), hashtags);
 
