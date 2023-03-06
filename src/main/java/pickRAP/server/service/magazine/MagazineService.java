@@ -346,6 +346,7 @@ public class MagazineService {
             for(Hashtag h : findHashtags) {
                 hashtags.add(h.getTag());
             }
+            DeduplicationUtils.deduplication(hashtags);
             findMagazines = findMagazineByHashtagOrderByPriority(member.getEmail(), hashtags);
         }
 
