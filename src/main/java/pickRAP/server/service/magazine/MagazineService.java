@@ -415,8 +415,10 @@ public class MagazineService {
 
         List<PersonalMoodResponse> personalMoodResponses = colorRepository.getPersonalMoodAnalysisResults(member);
 
-        for(PersonalMoodResponse r : personalMoodResponses) {
-            ColorType colorType = ColorType.from(r.getColorStyle());
+        int recommendationSize = calculateRecommendationSize(15);
+
+        for(int i = 0; i < recommendationSize && i < personalMoodResponses.size(); i++) {
+            ColorType colorType = ColorType.from(personalMoodResponses.get(i).getColorStyle());
             findMagazines.add(colorRepository.findMagazineByColor(colorType));
         }
 
