@@ -82,11 +82,7 @@ public class MagazineService {
         List<Magazine> findMagazines = magazineRepository.findMemberMagazines(email);
 
         List<MagazineListResponse> collect = findMagazines.stream()
-                .map(m -> MagazineListResponse.builder()
-                        .magazineId(m.getId())
-                        .coverUrl(m.getCover())
-                        .title(m.getTitle())
-                        .build())
+                .map(MagazineListResponse::new)
                 .collect(Collectors.toList());
 
         return collect;
@@ -285,11 +281,7 @@ public class MagazineService {
         List<Magazine> findMagazines = magazineRepository.findMagazineByHashtag(hashtag);
 
         List<MagazineListResponse> collect = findMagazines.stream()
-                .map(m -> MagazineListResponse.builder()
-                        .magazineId(m.getId())
-                        .coverUrl(m.getCover())
-                        .title(m.getTitle())
-                        .build())
+                .map(MagazineListResponse::new)
                 .collect(Collectors.toList());
 
         return collect;
@@ -321,11 +313,7 @@ public class MagazineService {
         }
 
         List<MagazineListResponse> collect = result.stream()
-                .map(m -> MagazineListResponse.builder()
-                        .magazineId(m.getId())
-                        .coverUrl(m.getCover())
-                        .title(m.getTitle())
-                        .build())
+                .map(MagazineListResponse::new)
                 .collect(Collectors.toList());
 
         return collect;
