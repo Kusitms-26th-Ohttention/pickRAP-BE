@@ -309,6 +309,15 @@ public class MagazineService {
             result.addAll(getRecommendationForTop3(member));
             result.addAll(getRecommendationForRespondedMagazine(member));
             result.addAll(getRecommendationForPersonalMood(member));
+
+            DeduplicationUtils.deduplication(result, Magazine::getId);
+
+            if(result.size() < RECOMMENDED_TOTAL_SIZE) {
+                result.addAll(getRecommendationForNoMagazine(member));
+                DeduplicationUtils.deduplication(result, Magazine::getId);
+
+                result = result.subList(0, RECOMMENDED_TOTAL_SIZE);
+            }
         }
 
         List<MagazineListResponse> collect = result.stream()
@@ -413,7 +422,7 @@ public class MagazineService {
         }
     }
 
-    // 추천 정책 4번 : 사용자 퍼스널 무든 분석 결과와 같은 반응을 가장 많이 받은 매거진 추천 (15%)
+    // 추천 정책 4번 : 사용자 퍼스널 무드 분석 결과와 같은 반응을 가장 많이 받은 매거진 추천 (15%)
     @Transactional(readOnly = true)
     public List<Magazine> getRecommendationForPersonalMood(Member member) {
         List<Magazine> findMagazines = new ArrayList<>();
