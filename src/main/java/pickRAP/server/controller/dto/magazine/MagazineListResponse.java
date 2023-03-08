@@ -1,9 +1,8 @@
 package pickRAP.server.controller.dto.magazine;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
 import lombok.Data;
-import pickRAP.server.domain.magazine.MagazinePage;
+import pickRAP.server.domain.magazine.Magazine;
 
 @Data
 public class MagazineListResponse {
@@ -13,10 +12,9 @@ public class MagazineListResponse {
     private String coverUrl;
     private String title;
 
-    @Builder
-    public MagazineListResponse(Long magazineId, String coverUrl, String title) {
-        this.magazineId = magazineId;
-        this.coverUrl = coverUrl;
-        this.title = title;
+    public MagazineListResponse(Magazine magazine) {
+        this.magazineId = magazine.getId();
+        this.coverUrl = magazine.getCover();
+        this.title = magazine.getTitle();
     }
 }

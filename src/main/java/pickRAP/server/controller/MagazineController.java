@@ -170,4 +170,29 @@ public class MagazineController {
 
         return ResponseEntity.ok(new BaseResponse(result));
     }
+
+    @GetMapping("/magazine/search")
+    @ApiOperation(value = "매거진 검색", notes = "query string에 search_keyword(검색어)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "500", description = "서버 예외")
+    })
+    public ResponseEntity<BaseResponse<List<MagazineListResponse>>> getSearchMagazineList(
+            @RequestParam("search_keyword") String keyword) {
+        List<MagazineListResponse> response = magazineService.findMagazineByHashtag(keyword);
+
+        return ResponseEntity.ok(new BaseResponse(response));
+    }
+
+    @GetMapping("/magazine/recommend")
+    @ApiOperation(value = "매거진 추천", notes = "최대 20개의 매거진 추천")
+    @ApiResponses({
+            @ApiResponse(responseCode = "500", description = "서버 예외")
+    })
+    public ResponseEntity<BaseResponse<List<MagazineListResponse>>> getRecommendedMagazineList() {
+        String email = authService.getUserEmail();
+        List<MagazineListResponse> response = magazineService.recommendedMagazineByMember(email);
+
+        return ResponseEntity.ok(new BaseResponse(response));
+    }
+
 }

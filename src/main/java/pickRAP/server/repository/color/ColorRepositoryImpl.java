@@ -78,6 +78,30 @@ public class ColorRepositoryImpl implements ColorRepositoryCustom{
         return personalMoodResponses;
     }
 
+    @Override
+    public List<Magazine> findTop20MagazinesByColor() {
+        return jpaQueryFactory
+                .select(magazine)
+                .from(magazine)
+                .innerJoin(color)
+                .on(magazine.eq(color.magazine))
+                .groupBy(magazine.id)
+                .orderBy(color.count().desc())
+                .limit(20)
+                .fetch();
+    }
 
+    @Override
+    public Magazine findMagazineByColor(ColorType colorType) {
+        return jpaQueryFactory
+                .select(magazine)
+                .from(magazine)
+                .innerJoin(color)
+                .on(magazine.eq(color.magazine))
+                .where(color.colorType.eq(colorType))
+                .groupBy(magazine.id)
+                .orderBy(color.count().desc())
+                .fetchFirst();
+    }
 
 }
