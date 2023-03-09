@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.model.*;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import pickRAP.server.common.BaseException;
@@ -18,16 +19,17 @@ import static pickRAP.server.config.s3.S3Config.amazonS3Client;
 
 @Component
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@DependsOn("s3Config")
 public class S3Util {
+
+    private static final AmazonS3Client amazonS3Client = amazonS3Client();
 
     private static String bucket;
 
     @Value("${cloud.aws.s3.bucket}")
-    public void setBucket(String buc) {
-        bucket = buc;
+    public void setBucket(String bucket) {
+        this.bucket = bucket;
     }
-
-    private static final AmazonS3Client amazonS3Client = amazonS3Client();
 
     //단일 파일 올리기 (s3 파일 이름 반환)
     public static String uploadFile(MultipartFile multipartFile, String dir, String scrapType) {
