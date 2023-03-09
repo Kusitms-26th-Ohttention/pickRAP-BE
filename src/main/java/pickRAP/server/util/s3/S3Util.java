@@ -26,7 +26,7 @@ public class S3Util {
 
     private static String bucket;
 
-    @Value("${cloud.aws.credentials.access-key}")
+    @Value("${cloud.aws.s3.bucket}")
     public void setBucket(String bucket) {
         this.bucket = bucket;
     }
