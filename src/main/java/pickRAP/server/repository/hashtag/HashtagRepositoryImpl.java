@@ -3,9 +3,15 @@ package pickRAP.server.repository.hashtag;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
+import pickRAP.server.controller.dto.Hashtag.HashtagResponse;
+import pickRAP.server.controller.dto.Hashtag.QHashtagResponse;
 import pickRAP.server.controller.dto.analysis.HashTagResponse;
 import pickRAP.server.controller.dto.analysis.HashtagFilterCondition;
 import pickRAP.server.controller.dto.analysis.QHashTagResponse;
+import pickRAP.server.domain.member.Member;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,7 +45,6 @@ public class HashtagRepositoryImpl implements HashtagRepositoryCustom {
 
         return getHashTagResponses(hashTagResponses, total);
     }
-
 
     // 전체:all, 3개월:recent, 년:year, 월:month
     private BooleanExpression timeFilter(HashtagFilterCondition hashtagFilterCond) {
@@ -98,5 +103,29 @@ public class HashtagRepositoryImpl implements HashtagRepositoryCustom {
         return (long) ((count/(double)total)*100);
     }
 
+    @Override
+    public Slice<HashtagResponse> findSliceHashtagResponse(Member member, Pageable pageable) {
+        List<HashtagResponse> hashtagResponses = jpaQueryFactory
+                .select(new QHashtagResponse(hashtag.tag, hashtag.profile))
+                .from(hashtag)
+                .where(hashtag.member.eq(member))
+                .groupBy(hashtag.tag, hashtag.profile)
+                .orderBy(hashtag.profile.desc(), hashtag.tag.asc())
+                .offset(pageable.getPageNumber())
+                .limit(pageable.getPageSize() + 1)
+                .fetch();
 
+        return createSliceHashtagResponse(hashtagResponses, pageable);
+    }
+
+    private Slice<HashtagResponse> createSliceHashtagResponse(List<HashtagResponse> hashtagResponses, Pageable pageable) {
+        boolean hasNext = false;
+
+        if (hashtagResponses.size() > pageable.getPageSize()) {
+            hasNext = true;
+            hashtagResponses.remove(pageable.getPageSize());
+        }
+
+        return new SliceImpl<>(hashtagResponses, pageable, hasNext);
+    }
 }

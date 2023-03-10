@@ -284,10 +284,17 @@ public class ScrapService {
         List<Hashtag> hashtags = new ArrayList<>();
 
         for(String hashtagRequest : hashtagRequests) {
+            List<Hashtag> findHashtags = hashtagRepository.findByMemberAndTag(member, hashtagRequest);
+            boolean profile = false;
+            if(!findHashtags.isEmpty() && findHashtags.get(0).isProfile()) {
+                profile = true;
+            }
+
             Hashtag hashtag = Hashtag.builder()
                     .tag(hashtagRequest)
                     .member(member)
                     .build();
+            hashtag.updateProfile(profile);
 
             hashtags.add(hashtag);
             hashtagRepository.save(hashtag);
@@ -339,14 +346,18 @@ public class ScrapService {
     }
 
     private void saveTextByScrap(Scrap scrap, Member member, boolean update) {
-        textService.save(member, scrap.getMemo());
+        if (StringUtils.hasText(scrap.getMemo())) {
+            textService.save(member, scrap.getMemo());
+        }
         if (scrap.getScrapType() == ScrapType.TEXT && !update) {
             textService.save(member, scrap.getContent());
         }
     }
 
     private void deleteTextByScrap(Scrap scrap, Member member, boolean update) {
-        textService.delete(member, scrap.getMemo());
+        if (StringUtils.hasText(scrap.getMemo())) {
+            textService.delete(member, scrap.getMemo());
+        }
         if (scrap.getScrapType() == ScrapType.TEXT && !update) {
             textService.delete(member, scrap.getContent());
         }
