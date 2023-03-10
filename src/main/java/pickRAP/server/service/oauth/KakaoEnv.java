@@ -2,7 +2,6 @@ package pickRAP.server.service.oauth;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +21,6 @@ import pickRAP.server.domain.member.Member;
 import pickRAP.server.domain.member.SocialType;
 import pickRAP.server.repository.member.MemberRepository;
 import pickRAP.server.service.auth.AuthService;
-import pickRAP.server.service.auth.DefaultImageEnv;
 import pickRAP.server.service.category.CategoryService;
 
 @Slf4j
@@ -119,7 +117,6 @@ public class KakaoEnv implements ProviderEnv{
                     .email(Long.toString(profile.getId()) + profile.getKakao_account().getEmail())
                     .password(passwordEncoder.encode(profile.getKakao_account().getEmail()))
                     .name(profile.getKakao_account().getProfile().getNickname())
-                    .profileImageUrl(DefaultImageEnv.DEFAULT_IMAGE_URL)
                     .socialType(SocialType.KAKAO)
                     .build();
             memberRepository.save(member);

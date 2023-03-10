@@ -19,7 +19,9 @@ public enum BaseExceptionStatus {
     EXPIRED_REFRESH(HttpStatus.UNAUTHORIZED, 2007, "재발급 실패"),
 
     // 회원
-
+    INTRODUCTION_LONG(HttpStatus.BAD_REQUEST, 3001, "소개글이 25자를 초과했습니다"),
+    DUPLICATE_NICKNAME(HttpStatus.BAD_REQUEST, 3002, "이미 존재하는 닉네임입니다"),
+    EXCEED_HASHTAG(HttpStatus.BAD_REQUEST, 3003, "해시태그는 4개까지 선택 가능합니다"),
 
     // 스크랩
     NOT_SUPPORT_FILE(HttpStatus.BAD_REQUEST, 4001, "지원하지 않는 파일 형식입니다"),
