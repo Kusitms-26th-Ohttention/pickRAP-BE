@@ -1,4 +1,4 @@
-package pickRAP.server.hashtag;
+package pickRAP.server.analysis.hashtag;
 
 
 import org.assertj.core.api.Assertions;

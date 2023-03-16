@@ -7,11 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import pickRAP.server.common.BaseException;
+import pickRAP.server.common.BaseExceptionStatus;
 import pickRAP.server.controller.dto.auth.MemberSignUpRequest;
 import pickRAP.server.controller.dto.category.CategoryRequest;
-import pickRAP.server.controller.dto.magazine.MagazineListResponse;
-import pickRAP.server.controller.dto.magazine.MagazinePageRequest;
-import pickRAP.server.controller.dto.magazine.MagazineRequest;
+import pickRAP.server.controller.dto.magazine.*;
 import pickRAP.server.controller.dto.scrap.ScrapRequest;
 import pickRAP.server.domain.category.Category;
 import pickRAP.server.domain.magazine.Magazine;
@@ -38,6 +37,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static pickRAP.server.auth.AuthEnv.*;
 import static pickRAP.server.common.BaseExceptionStatus.*;
+import static pickRAP.server.magazine.RecommEnv.*;
+import static pickRAP.server.magazine.RecommEnv.PASSWORD;
 
 @SpringBootTest
 @Transactional
@@ -65,11 +66,11 @@ public class MagazineServiceTest {
     List<Long> scrapIds = new ArrayList<>();
     List<Long> coverIds = new ArrayList<>();
 
-    private MemberSignUpRequest memberSignUpRequest() {
+    private MemberSignUpRequest memberSignUpRequest(String email, String password, String name) {
         return MemberSignUpRequest.builder()
-                .email(EMAIL_OK)
-                .password(PASSWORD_OK)
-                .name("테스트유저")
+                .email(email)
+                .password(password)
+                .name(name)
                 .build();
     }
 
@@ -132,11 +133,16 @@ public class MagazineServiceTest {
 
     @BeforeEach
     void before() {
-        MemberSignUpRequest memberSignUpRequest = memberSignUpRequest();
+        List<MemberSignUpRequest> memberSignUpRequestList = new ArrayList<>();
+        memberSignUpRequestList.add(memberSignUpRequest(EMAIL_OK, PASSWORD, "제작자"));
+        memberSignUpRequestList.add(memberSignUpRequest(Mem2EMAIL, PASSWORD, "반응자"));
+
+        for (MemberSignUpRequest signUpRequest : memberSignUpRequestList) {
+            authService.signUp(signUpRequest);
+        }
         CategoryRequest categoryRequest = categoryRequest("여행");
         List<ScrapRequest> scrapRequests = new ArrayList<>();
 
-        authService.signUp(memberSignUpRequest);
         categoryService.save(categoryRequest, EMAIL_OK);
 
         Member member = memberRepository.findByEmail(EMAIL_OK).get();
@@ -159,14 +165,8 @@ public class MagazineServiceTest {
         // given
         Member member = memberRepository.findByEmail(EMAIL_OK).get();
         Category category = categoryRepository.findMemberCategory("여행", member.getEmail()).get();
-        List<Scrap> scrapList = scrapRepository.findByCategoryId(category.getId());
-
-        for(Scrap s : scrapList) {
-            scrapIds.add(s.getId());
-        }
-        List<MagazinePageRequest> magazinePageRequest = magazinePageRequests();
-        MagazineRequest magazineRequest = magazineRequest("매거진 제목", true, coverIds.get(0), magazinePageRequest);
-
+        setScrapIds(category);
+        MagazineRequest magazineRequest = createMagazineCase("매거진 제목", coverIds.get(0));
         // when
         magazineService.save(magazineRequest, member.getEmail());
 
@@ -191,16 +191,11 @@ public class MagazineServiceTest {
         // given
         Member member = memberRepository.findByEmail(EMAIL_OK).get();
         Category category = categoryRepository.findMemberCategory("여행", member.getEmail()).get();
-        List<Scrap> scrapList = scrapRepository.findByCategoryId(category.getId());
-
-        for(Scrap s : scrapList) {
-            scrapIds.add(s.getId());
-        }
-        List<MagazinePageRequest> magazinePageRequest = magazinePageRequests();
-        MagazineRequest magazineRequest = magazineRequest("매거진 제목", true, coverIds.get(0), magazinePageRequest);
+        setScrapIds(category);
+        MagazineRequest magazineRequest = createMagazineCase( "매거진 제목", coverIds.get(0));
         magazineService.save(magazineRequest, member.getEmail());
         Magazine magazine = magazineRepository.findByTitleAndMember("매거진 제목", member).get();
-        MagazineRequest magazineUpdateRequest = magazineRequest("매거진 제목 수정", false, coverIds.get(1), magazinePageRequest);
+        MagazineRequest magazineUpdateRequest = magazineRequest("매거진 제목 수정", false, coverIds.get(1), magazinePageRequests());
 
         // when
         magazineService.updateMagazine(magazineUpdateRequest, magazine.getId(), member.getEmail());
@@ -221,13 +216,8 @@ public class MagazineServiceTest {
         // given
         Member member = memberRepository.findByEmail(EMAIL_OK).get();
         Category category = categoryRepository.findMemberCategory("여행", member.getEmail()).get();
-        List<Scrap> scrapList = scrapRepository.findByCategoryId(category.getId());
-
-        for(Scrap s : scrapList) {
-            scrapIds.add(s.getId());
-        }
-        List<MagazinePageRequest> magazinePageRequest = magazinePageRequests();
-        MagazineRequest magazineRequest = magazineRequest("매거진 제목", true, coverIds.get(0), magazinePageRequest);
+        setScrapIds(category);
+        MagazineRequest magazineRequest = createMagazineCase( "매거진 제목", coverIds.get(0));
         magazineService.save(magazineRequest, member.getEmail());
         Magazine magazine = magazineRepository.findByTitleAndMember("매거진 제목", member).get();
 
@@ -245,13 +235,8 @@ public class MagazineServiceTest {
         // given
         Member member = memberRepository.findByEmail(EMAIL_OK).get();
         Category category = categoryRepository.findMemberCategory("여행", member.getEmail()).get();
-        List<Scrap> scrapList = scrapRepository.findByCategoryId(category.getId());
-
-        for(Scrap s : scrapList) {
-            scrapIds.add(s.getId());
-        }
-        List<MagazinePageRequest> magazinePageRequest = magazinePageRequests();
-        MagazineRequest magazineRequest = magazineRequest("매거진 제목", true, coverIds.get(0), magazinePageRequest);
+        setScrapIds(category);
+        MagazineRequest magazineRequest = createMagazineCase( "매거진 제목", coverIds.get(0));
 
         magazineService.save(magazineRequest, member.getEmail());
 
@@ -271,14 +256,8 @@ public class MagazineServiceTest {
         // given
         Member member = memberRepository.findByEmail(EMAIL_OK).get();
         Category category = categoryRepository.findMemberCategory("여행", member.getEmail()).get();
-        List<Scrap> scrapList = scrapRepository.findByCategoryId(category.getId());
-
-        for(Scrap s : scrapList) {
-            scrapIds.add(s.getId());
-        }
-        List<MagazinePageRequest> magazinePageRequest = magazinePageRequests();
-        MagazineRequest magazineRequest = magazineRequest("매거진 제목은 15자 넘기지 말아요", true, 0L, magazinePageRequest);
-
+        setScrapIds(category);
+        MagazineRequest magazineRequest = createMagazineCase("매거진 제목은 15자 넘기지 말아요", 0L);
         // when
         BaseException e = assertThrows(BaseException.class,
                 () -> magazineService.save(magazineRequest, member.getEmail()));
@@ -293,14 +272,8 @@ public class MagazineServiceTest {
         // given
         Member member = memberRepository.findByEmail(EMAIL_OK).get();
         Category category = categoryRepository.findMemberCategory("여행", member.getEmail()).get();
-        List<Scrap> scrapList = scrapRepository.findByCategoryId(category.getId());
-
-        for(Scrap s : scrapList) {
-            scrapIds.add(s.getId());
-        }
-        List<MagazinePageRequest> magazinePageRequest = magazinePageRequests();
-        MagazineRequest magazineRequest = magazineRequest("매거진 제목", true, 100L, magazinePageRequest);
-
+        setScrapIds(category);
+        MagazineRequest magazineRequest = createMagazineCase("매거진 제목", 100L);
         // when
         BaseException e = assertThrows(BaseException.class,
                 () -> magazineService.save(magazineRequest, member.getEmail()));
@@ -315,14 +288,8 @@ public class MagazineServiceTest {
         // given
         Member member = memberRepository.findByEmail(EMAIL_OK).get();
         Category category = categoryRepository.findMemberCategory("여행", member.getEmail()).get();
-        List<Scrap> scrapList = scrapRepository.findByCategoryId(category.getId());
-
-        for(Scrap s : scrapList) {
-            scrapIds.add(s.getId());
-        }
-        List<MagazinePageRequest> magazinePageRequest = magazinePageRequests();
-        MagazineRequest magazineRequest = magazineRequest("매거진 제목", true, scrapIds.get(0), magazinePageRequest);
-
+        setScrapIds(category);
+        MagazineRequest magazineRequest = createMagazineCase("매거진 제목", scrapIds.get(0));
         // when
         BaseException e = assertThrows(BaseException.class,
                 () -> magazineService.save(magazineRequest, member.getEmail()));
@@ -330,4 +297,57 @@ public class MagazineServiceTest {
         // then
         assertThat(e.getStatus()).isEqualTo(DONT_MATCH_TYPE);
     }
+
+    private MagazineRequest createMagazineCase(String title, Long coverId) {
+        List<MagazinePageRequest> magazinePageRequest = magazinePageRequests();
+        return magazineRequest(title, true, coverId, magazinePageRequest);
+    }
+
+    private void setScrapIds(Category category) {
+        List<Scrap> scrapList = scrapRepository.findByCategoryId(category.getId());
+        for(Scrap s : scrapList) {
+            scrapIds.add(s.getId());
+        }
+    }
+
+    @Test
+    @DisplayName("색반응 조회 예외 - 매거진 제작자가 조회")
+    void magazineColorReactionListExceptionTest() {
+        // given
+        Member member = memberRepository.findByEmail(EMAIL_OK).get();
+        Category category = categoryRepository.findMemberCategory("여행", member.getEmail()).get();
+        setScrapIds(category);
+        MagazineRequest magazineRequest = createMagazineCase("매거진 제목", coverIds.get(0));
+        magazineService.save(magazineRequest, member.getEmail());
+        Magazine findMagazine = magazineRepository.findByTitleAndMember("매거진 제목", member).orElseThrow();
+
+        // when
+        BaseException e = assertThrows(BaseException.class, () -> magazineService.getMagazineColor(member.getEmail(), findMagazine.getId()));
+
+        // then
+        assertThat(e.getStatus()).isEqualTo(CANT_COLOR_REACTION);
+    }
+
+
+    @Test
+    @DisplayName("색반응")
+    void magazineColorReactionTest() {
+        // given
+        Member member = memberRepository.findByEmail(EMAIL_OK).get();
+        Category category = categoryRepository.findMemberCategory("여행", member.getEmail()).get();
+        setScrapIds(category);
+        MagazineRequest magazineRequest = createMagazineCase("매거진 제목", coverIds.get(0));
+        magazineService.save(magazineRequest, member.getEmail());
+        Magazine findMagazine = magazineRepository.findByTitleAndMember("매거진 제목", member).orElseThrow();
+
+        // when
+        Member memberA = memberRepository.findByEmail(Mem2EMAIL).orElseThrow();
+        MagazineColorRequest magazineColorRequest = MagazineColorRequest.builder().colorType("화려한 레드").build();
+        magazineService.addMagazineColor(memberA.getEmail(), findMagazine.getId(), magazineColorRequest);
+
+        // then
+        MagazineColorResponse magazineColorResponse = magazineService.getMagazineColor(memberA.getEmail(), findMagazine.getId());
+        assertThat(magazineColorResponse.getColorType()).isEqualTo("화려한 레드");
+    }
+
 }
