@@ -27,12 +27,12 @@ public class Hashtag extends BaseEntity {
     private Member member;
 
     @Convert(converter = BooleanToYNConverter.class)
-    private boolean profile;
+    private boolean usedInProfile;
 
     @Builder
     public Hashtag(String tag, Member member) {
         this.tag = tag;
-        this.profile = false;
+        this.usedInProfile = false;
         setMember(member);
     }
 
@@ -41,7 +41,7 @@ public class Hashtag extends BaseEntity {
         member.getHashtags().add(this);
     }
 
-    public void updateProfile(boolean profile) {
-        this.profile = profile;
+    public void updateProfile(boolean usedInProfile) {
+        this.usedInProfile = usedInProfile;
     }
 }

@@ -12,11 +12,11 @@ public interface HashtagRepository extends JpaRepository<Hashtag, Long>, Hashtag
 
     List<Hashtag> findByMember(Member member);
 
-    @Query("select DISTINCT h.tag from Hashtag h where h.member = :member and h.profile = :profile order by h.tag")
-    List<String> findTagDistinct(@Param("member") Member member, @Param("profile") boolean profile);
+    @Query("select DISTINCT h.tag from Hashtag h where h.member = :member and h.usedInProfile = :usedInProfile order by h.tag")
+    List<String> findTagDistinct(@Param("member") Member member, @Param("usedInProfile") boolean usedInProfile);
 
-    @Query("select h from Hashtag h where h.member = :member and h.profile = true")
-    List<Hashtag> findHashtagUseProfile(@Param("member") Member member);
+    @Query("select h from Hashtag h where h.member = :member and h.usedInProfile = true")
+    List<Hashtag> findHashtagUsedInProfile(@Param("member") Member member);
 
     List<Hashtag> findByMemberAndTag(Member member, String tag);
 

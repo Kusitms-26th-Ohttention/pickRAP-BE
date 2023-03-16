@@ -94,7 +94,7 @@ public class ProfileService {
     }
 
     private void updateProfileHashtag(Member member, ProfileRequest profileRequest) {
-        List<Hashtag> useHashtags = hashtagRepository.findHashtagUseProfile(member);
+        List<Hashtag> useHashtags = hashtagRepository.findHashtagUsedInProfile(member);
         useHashtags.forEach(h -> h.updateProfile(false));
 
         profileRequest.getHashtags().forEach(

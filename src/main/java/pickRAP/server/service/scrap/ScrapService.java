@@ -285,16 +285,16 @@ public class ScrapService {
 
         for(String hashtagRequest : hashtagRequests) {
             List<Hashtag> findHashtags = hashtagRepository.findByMemberAndTag(member, hashtagRequest);
-            boolean profile = false;
-            if(!findHashtags.isEmpty() && findHashtags.get(0).isProfile()) {
-                profile = true;
+            boolean usedInProfile = false;
+            if(!findHashtags.isEmpty() && findHashtags.get(0).isUsedInProfile()) {
+                usedInProfile = true;
             }
 
             Hashtag hashtag = Hashtag.builder()
                     .tag(hashtagRequest)
                     .member(member)
                     .build();
-            hashtag.updateProfile(profile);
+            hashtag.updateProfile(usedInProfile);
 
             hashtags.add(hashtag);
             hashtagRepository.save(hashtag);

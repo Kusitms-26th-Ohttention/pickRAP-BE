@@ -106,11 +106,11 @@ public class HashtagRepositoryImpl implements HashtagRepositoryCustom {
     @Override
     public Slice<HashtagResponse> findSliceHashtagResponse(Member member, Pageable pageable) {
         List<HashtagResponse> hashtagResponses = jpaQueryFactory
-                .select(new QHashtagResponse(hashtag.tag, hashtag.profile))
+                .select(new QHashtagResponse(hashtag.tag, hashtag.usedInProfile))
                 .from(hashtag)
                 .where(hashtag.member.eq(member))
-                .groupBy(hashtag.tag, hashtag.profile)
-                .orderBy(hashtag.profile.desc(), hashtag.tag.asc())
+                .groupBy(hashtag.tag, hashtag.usedInProfile)
+                .orderBy(hashtag.usedInProfile.desc(), hashtag.tag.asc())
                 .offset(pageable.getPageNumber())
                 .limit(pageable.getPageSize() + 1)
                 .fetch();
