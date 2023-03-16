@@ -22,7 +22,6 @@ import pickRAP.server.domain.member.Member;
 import pickRAP.server.domain.member.SocialType;
 import pickRAP.server.repository.member.MemberRepository;
 import pickRAP.server.service.auth.AuthService;
-import pickRAP.server.service.auth.DefaultImageEnv;
 import pickRAP.server.service.category.CategoryService;
 
 import java.net.URLDecoder;
@@ -124,7 +123,6 @@ public class NaverEnv implements ProviderEnv{
                     .email(profile.getResponse().getId() + profile.getResponse().getEmail())
                     .name(URLDecoder.decode(profile.getResponse().getName(), CharsetUtil.UTF_8))
                     .password(passwordEncoder.encode(profile.getResponse().getEmail()))
-                    .profileImageUrl(DefaultImageEnv.DEFAULT_IMAGE_URL)
                     .socialType(SocialType.NAVER)
                     .build();
             memberRepository.save(member);

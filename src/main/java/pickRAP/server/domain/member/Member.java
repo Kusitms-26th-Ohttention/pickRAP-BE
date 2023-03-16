@@ -11,10 +11,14 @@ import pickRAP.server.domain.magazine.Color;
 import pickRAP.server.domain.magazine.Magazine;
 import pickRAP.server.domain.scrap.Scrap;
 import pickRAP.server.domain.text.Text;
+import pickRAP.server.service.auth.DefaultProfileEnv;
 
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import static pickRAP.server.domain.member.Authority.ROLE_USER;
+import static pickRAP.server.service.auth.DefaultProfileEnv.*;
 
 @Entity
 @Getter
@@ -36,7 +40,7 @@ public class Member extends BaseEntity {
 
     private String introduction;
 
-    private String keyword;
+    private String nickname;
 
     @Enumerated(EnumType.STRING)
     private Authority authority;
@@ -63,27 +67,20 @@ public class Member extends BaseEntity {
     private List<Color> colors = new ArrayList<>();
 
     @Builder
-    public Member(String email, SocialType socialType, String password, String name, String profileImageUrl) {
+    public Member(String email, SocialType socialType, String password, String name) {
         this.email = email;
         this.password = password;
         this.name = name;
-        this.profileImageUrl = profileImageUrl;
-        this.authority = Authority.ROLE_USER;
+        this.profileImageUrl = DEFAULT_IMAGE_URL;
+        this.introduction = DEFAULT_INTRODUCTION;
+        this.nickname = DEFAULT_NICKNAME;
+        this.authority = ROLE_USER;
         this.socialType = socialType;
     }
 
-    public void updateProfile(String name, String introduction, String profileImageUrl, String keyword) {
-        if(name != null) {
-            this.name = name;
-        }
-        if(introduction != null) {
-            this.introduction = introduction;
-        }
-        if(!profileImageUrl.equals("")) {
-            this.profileImageUrl = profileImageUrl;
-        }
-        if(keyword != null) {
-            this.keyword = keyword;
-        }
+    public void updateProfile(String nickname, String introduction, String profileImageUrl) {
+        this.nickname = nickname;
+        this.introduction = introduction;
+        this.profileImageUrl = profileImageUrl;
     }
 }
