@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import pickRAP.server.common.BaseEntity;
+import pickRAP.server.common.BooleanToYNConverter;
 import pickRAP.server.domain.member.Member;
 
 import javax.persistence.*;
@@ -25,9 +26,13 @@ public class Hashtag extends BaseEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
+    @Convert(converter = BooleanToYNConverter.class)
+    private boolean usedInProfile;
+
     @Builder
     public Hashtag(String tag, Member member) {
         this.tag = tag;
+        this.usedInProfile = false;
         setMember(member);
     }
 
@@ -36,5 +41,7 @@ public class Hashtag extends BaseEntity {
         member.getHashtags().add(this);
     }
 
-
+    public void updateProfile(boolean usedInProfile) {
+        this.usedInProfile = usedInProfile;
+    }
 }
