@@ -132,9 +132,7 @@ public class MagazineRecommServiceTest {
     }
 
     private MagazineColorRequest magazineColorRequest(String colorType) {
-        MagazineColorRequest r = new MagazineColorRequest();
-        r.setColorType(colorType);
-        return r;
+        return MagazineColorRequest.builder().colorType(colorType).build();
     }
 
     void categorySetting() {
